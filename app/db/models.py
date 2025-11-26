@@ -4,7 +4,6 @@ from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db.base import Base
-
 class Tenant(Base):
     __tablename__ = "tenants"
 
@@ -12,7 +11,8 @@ class Tenant(Base):
     name = Column(String, nullable=False)
     waba_id = Column(String, unique=True, nullable=False)
     phone_number_id = Column(String, unique=True, nullable=False)
-    token = Column(String, nullable=False)  # Consider encryption in future
+    token = Column(String, nullable=False)
+    api_key = Column(String, unique=True, index=True, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 

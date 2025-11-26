@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.schemas.tenant import TenantCreate, TenantResponse
 from app.db.repositories.tenant_repository import TenantRepository
+from app.services.log_service import AuditLogger
 
 router = APIRouter()
 
@@ -22,6 +23,14 @@ async def create_tenant(
         )
     
     new_tenant = await repo.create_tenant(tenant)
+    
+    await AuditLogger.log(
+        db, 
+        "tenant_created", 
+        {"name": new_tenant.name, "waba_id": new_tenant.waba_id},
+        tenant_id=new_tenant.id
+    )
+    
     return new_tenant
 
 @router.get("/", response_model=list[TenantResponse])

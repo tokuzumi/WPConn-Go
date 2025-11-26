@@ -5,26 +5,22 @@ from app.db.session import get_db
 from app.db.models import Tenant, Message
 from app.schemas.message import MessageSendRequest, MessageResponse
 from app.services.whatsapp_client import WhatsAppClient
+from app.services.log_service import AuditLogger
 import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+from app.api.deps import get_current_tenant
+
 @router.post("/send", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 async def send_message(
     request: MessageSendRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
 ):
-    # 1. Fetch Tenant
-    query = select(Tenant).where(Tenant.id == request.tenant_id)
-    result = await db.execute(query)
-    tenant = result.scalars().first()
+    # Tenant is already fetched and validated by get_current_tenant
 
-    if not tenant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
-        )
 
     # 2. Save Message (Pending)
     db_message = Message(
@@ -66,6 +62,15 @@ async def send_message(
         # 5. Error: Update status to failed
         logger.error(f"Failed to send message: {e}")
         db_message.status = "failed"
+        
+        # Audit Log
+        await AuditLogger.log(
+            db, 
+            "message_send_failed", 
+            {"error": str(e), "message_id": str(db_message.id)},
+            tenant_id=tenant.id
+        )
+        
         # We don't raise HTTPException here to return the message object with failed status
         # allowing the client to know it was attempted but failed.
     

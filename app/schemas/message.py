@@ -2,7 +2,6 @@ from pydantic import BaseModel, UUID4
 from typing import Optional
 
 class MessageSendRequest(BaseModel):
-    tenant_id: UUID4
     to_number: str
     content: str
 

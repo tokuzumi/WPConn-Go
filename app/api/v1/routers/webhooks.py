@@ -30,18 +30,22 @@ async def verify_webhook(
     # but strictly for verification it sends params.
     return Response(content="Webhook Endpoint", media_type="text/plain")
 
+from app.db.session import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.log_service import AuditLogger
+
 @router.post("/")
 async def receive_webhook(
     request: Request,
     background_tasks: BackgroundTasks,
-    # Signature verification dependency
-    authorized: bool = Depends(verify_webhook_signature) 
+    authorized: bool = Depends(verify_webhook_signature),
+    db: AsyncSession = Depends(get_db)
 ):
     try:
-        # We need to parse JSON here. 
-        # Note: verify_webhook_signature already consumed the body stream, 
-        # but FastAPI/Starlette caches it so await request.json() works.
         payload = await request.json()
+        
+        # Log raw payload
+        await AuditLogger.log(db, "webhook_received", payload)
         
         service = WebhookService()
         background_tasks.add_task(service.process_payload, payload)
@@ -49,5 +53,10 @@ async def receive_webhook(
         return Response(content="EVENT_RECEIVED", status_code=200)
     except Exception as e:
         logger.error(f"Error receiving webhook: {e}")
-        # Always return 200 to Meta to avoid retries if it's an internal error we can't fix immediately
+        # Log error if possible, though db might be closed or issue might be related to db
+        # We can try logging the error too
+        try:
+             await AuditLogger.log(db, "webhook_error", str(e))
+        except:
+             pass
         return Response(content="EVENT_RECEIVED", status_code=200)
