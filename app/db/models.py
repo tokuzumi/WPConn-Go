@@ -32,7 +32,7 @@ class Message(Base):
     content = Column(Text, nullable=True)
     
     # Media fields
-    media_url = Column(String, nullable=True)
+    media_url = Column(String, index=True, nullable=True)
     media_type = Column(String, nullable=True)
     caption = Column(Text, nullable=True)
     caption = Column(Text, nullable=True)

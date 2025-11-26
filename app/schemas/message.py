@@ -3,7 +3,10 @@ from typing import Optional
 
 class MessageSendRequest(BaseModel):
     to_number: str
-    content: str
+    content: Optional[str] = None
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
+    caption: Optional[str] = None
 
 class MessageResponse(BaseModel):
     id: UUID4

@@ -42,11 +42,49 @@ class MetaClient:
                     logger.error(f"Failed to download media: {response.status_code}")
                     yield None
 
+    async def upload_media(self, file_stream, content_type: str) -> str:
+        """
+        Uploads media to Meta and returns the media ID.
+        """
+        url = f"{self.base_url}/{self.phone_number_id}/media"
+        
+        # httpx requires a specific format for file uploads:
+        # files = {'file': ('filename', file_stream, 'content_type')}
+        # Since we are streaming, we need to ensure file_stream is compatible.
+        # If file_stream is an async iterator (from aioboto3/utils), httpx might not handle it directly as a file.
+        # However, we can read it into memory if it's not too huge, OR use a generator.
+        # Given the "100 users 10MB" requirement, we should stream.
+        # But httpx async client upload with generator is tricky.
+        # Let's assume for now we read chunks.
+        
+        # Actually, aioboto3 download_fileobj writes to a file-like object.
+        # We can use a custom AsyncReader that yields data.
+        
+        # For simplicity in this iteration, let's assume we can read the stream.
+        # If file_stream is the AsyncIteratorToFileLike we created, it has a read method.
+        # But httpx expects a sync read or an async iterator.
+        
+        # Let's try to just pass the stream if it supports read.
+        
+        files = {
+            "file": ("media_file", file_stream, content_type),
+            "messaging_product": (None, "whatsapp")
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers={"Authorization": f"Bearer {self.token}"}, files=files)
+            
+            if response.status_code == 200:
+                return response.json().get("id")
+            else:
+                logger.error(f"Failed to upload media: {response.text}")
+                return None
+
     async def send_message(self, payload: dict):
         url = f"{self.base_url}/{self.phone_number_id}/messages"
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, headers=self.headers)
             if response.status_code not in [200, 201]:
                 logger.error(f"Failed to send message: {response.text}")
-                return None
+                return response.json() # Return error response for debugging
             return response.json()
