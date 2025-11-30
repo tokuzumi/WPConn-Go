@@ -1,0 +1,20 @@
+# Python & Venv
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+*.egg-info/
+
+# Variáveis de Ambiente (CRÍTICO - NÃO REMOVER)
+.env
+.env.local
+
+# IDEs e Sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker e Logs
+*.log
