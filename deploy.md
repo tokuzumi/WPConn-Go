@@ -1,12 +1,11 @@
-# Guia de Deploy em Produção (VPS) com Traefik
+# Guia de Deploy em Produção (VPS) com Traefik Existente
 
-Este guia descreve os passos para implantar o WPConn em um servidor VPS (Ubuntu/Debian) usando Docker e Traefik como Reverse Proxy com SSL automático (Let's Encrypt).
+Este guia descreve os passos para implantar o WPConn em um servidor VPS onde o **Traefik já está rodando** como Reverse Proxy.
 
 ## 1. Pré-requisitos
-- Servidor VPS com Docker e Docker Compose instalados.
-- Domínio configurado apontando para o IP do servidor:
-    - `api.seudominio.com` (para o Backend)
-    - `app.seudominio.com` (para o Dashboard)
+- Servidor VPS com Docker e Docker Compose.
+- **Traefik já instalado e configurado** (com Entrypoints `web` e `websecure` e CertResolver `myresolver` ou similar).
+- Uma rede Docker externa onde o Traefik está conectado (ex: `proxy`, `web`, `traefik-public`).
 
 ## 2. Estrutura de Arquivos
 No servidor, clone o repositório:
@@ -16,13 +15,16 @@ cd WPConn
 ```
 
 ## 3. Configuração de Variáveis de Ambiente
-Crie um arquivo `.env` na raiz com as configurações abaixo. O Traefik usará essas variáveis para gerar os certificados e rotear o tráfego.
+Crie um arquivo `.env` na raiz com as configurações abaixo.
 
 ```env
 # Configuração de Domínios
 DOMAIN_API=api.seudominio.com
 DOMAIN_APP=app.seudominio.com
-ACME_EMAIL=seu_email@exemplo.com
+
+# Configuração do Traefik
+# Nome da rede Docker onde o Traefik está rodando (ex: proxy, web, traefik_network)
+TRAEFIK_NETWORK=proxy
 
 # Database
 POSTGRES_USER=postgres
@@ -48,23 +50,18 @@ MINIO_USE_SSL=False
 NEXTAUTH_SECRET=sua_chave_secreta_nextauth
 ```
 
-## 4. Docker Compose de Produção
-Utilize o arquivo `docker-compose.prod.yml` para subir os serviços. O Traefik irá automaticamente:
-1.  Detectar os containers.
-2.  Gerar certificados SSL para os domínios definidos.
-3.  Redirecionar HTTP para HTTPS.
+## 4. Ajustes no Docker Compose (Se necessário)
+O arquivo `docker-compose.prod.yml` assume algumas configurações padrão do Traefik:
+- **CertResolver**: `myresolver`. Se o seu Traefik usa outro nome (ex: `letsencrypt`), edite as labels no arquivo `docker-compose.prod.yml`.
+- **Entrypoints**: `websecure`.
+
+## 5. Deploy
+Suba os serviços. Eles se conectarão automaticamente à rede do Traefik definida em `TRAEFIK_NETWORK`.
 
 ```bash
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-## 5. Verificação
-- Acesse `https://app.seudominio.com` para ver o Dashboard.
-- Acesse `https://api.seudominio.com/docs` para ver a documentação da API.
-- O Traefik Dashboard (se habilitado na porta 8080) pode ser acessado via túnel SSH ou liberando a porta (não recomendado em produção sem senha).
-
-## 6. Manutenção
-Para ver os logs do Traefik e verificar a emissão de certificados:
-```bash
-docker-compose -f docker-compose.prod.yml logs -f traefik
-```
+## 6. Verificação
+- Verifique se os containers subiram e estão na rede correta.
+- Acesse `https://app.seudominio.com`.

@@ -1,31 +1,6 @@
 version: '3.8'
 
 services:
-  # Traefik Reverse Proxy
-  traefik:
-    image: traefik:v2.10
-    restart: always
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # Uncomment for testing
-      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080" # Dashboard (Optional, secure in prod)
-    volumes:
-      - "./letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    networks:
-      - wpconn-network
-
   # Database
   db:
     image: postgres:15-alpine
@@ -37,7 +12,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-wpp_connect}
     networks:
-      - wpconn-network
+      - default
 
   # Backend API
   api:
@@ -54,13 +29,15 @@ services:
       - API_V1_STR=/api/v1
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
     networks:
-      - wpconn-network
+      - default
+      - traefik_public
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`${DOMAIN_API}`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=myresolver"
-      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.http.routers.wpconn-api.rule=Host(`${DOMAIN_API}`)"
+      - "traefik.http.routers.wpconn-api.entrypoints=websecure"
+      - "traefik.http.routers.wpconn-api.tls.certresolver=myresolver"
+      - "traefik.http.services.wpconn-api.loadbalancer.server.port=8000"
 
   # Frontend Dashboard
   dashboard:
@@ -73,17 +50,22 @@ services:
       - NEXTAUTH_URL=https://${DOMAIN_APP}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     networks:
-      - wpconn-network
+      - default
+      - traefik_public
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`${DOMAIN_APP}`)"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.tls.certresolver=myresolver"
-      - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.http.routers.wpconn-dashboard.rule=Host(`${DOMAIN_APP}`)"
+      - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.wpconn-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.services.wpconn-dashboard.loadbalancer.server.port=3000"
 
 networks:
-  wpconn-network:
+  default:
     driver: bridge
+  traefik_public:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy}
 
 volumes:
   postgres_data:
