@@ -29,7 +29,11 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        // Force HTTPS in production
+        if (!window.location.hostname.includes('localhost') && API_URL.startsWith('http://')) {
+          API_URL = API_URL.replace('http://', 'https://');
+        }
         const healthUrl = API_URL.replace('/api/v1', '') + '/health';
         const res = await fetch(healthUrl);
         if (res.ok) {

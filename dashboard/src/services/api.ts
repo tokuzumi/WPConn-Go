@@ -1,4 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+// Force HTTPS in production (if not localhost)
+if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && API_URL.startsWith('http://')) {
+    API_URL = API_URL.replace('http://', 'https://');
+}
+
 
 export interface Tenant {
     id: string;
