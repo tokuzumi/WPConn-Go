@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from app.db.session import get_db
 from app.core.config import settings
+# Importando routers
+from app.api.v1.routers import tenants, messages, logs, users, dashboard, webhooks
 
 app = FastAPI(title="wpp-connect-api")
 
-# Set all CORS enabled origins
-# Configuração CORS Permissiva (Hardcoded para Produção)
+# Configuração CORS Permissiva (Produção)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,8 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.api.v1.routers import tenants, messages, logs, users, dashboard, webhooks
-
+# Rotas
 app.include_router(tenants.router, prefix="/api/v1/tenants", tags=["Tenants"])
 app.include_router(messages.router, prefix="/api/v1/messages", tags=["Messages"])
 app.include_router(logs.router, prefix="/api/v1/logs", tags=["Logs"])
