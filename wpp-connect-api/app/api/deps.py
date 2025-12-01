@@ -14,6 +14,10 @@ async def get_current_tenant(
     db: AsyncSession = Depends(get_db)
 ) -> Tenant:
     # Master Key Check (Admin Mode)
+    import logging
+    logger = logging.getLogger(__name__)
+    # logger.info(f"Auth Check: Received Key={api_key[:5]}... Expected Secret={settings.APP_SECRET[:5]}...")
+    
     if api_key == settings.APP_SECRET:
         return Tenant(id="admin", name="Admin", is_active=True)
 
