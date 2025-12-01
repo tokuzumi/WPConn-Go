@@ -1,9 +1,11 @@
 let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// Force HTTPS in production (if not localhost)
-if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && API_URL.startsWith('http://')) {
+// Force HTTPS if the page is loaded over HTTPS
+if (typeof window !== 'undefined' && window.location.protocol === 'https:' && API_URL.startsWith('http://')) {
+    console.log('[API] Enforcing HTTPS: Replacing http with https');
     API_URL = API_URL.replace('http://', 'https://');
 }
+console.log('[API] Final API_URL:', API_URL);
 
 
 export interface Tenant {
