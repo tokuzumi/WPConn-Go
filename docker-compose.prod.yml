@@ -44,6 +44,8 @@ services:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     restart: always
     environment:
       - NEXT_PUBLIC_API_URL=https://${DOMAIN_API}/api/v1
@@ -57,7 +59,7 @@ services:
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
       - "traefik.http.routers.wpconn-dashboard.rule=Host(`${DOMAIN_APP}`)"
       - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.wpconn-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.routers.wpconn-dashboard.tls.certresolver=${TRAEFIK_RESOLVER:-letsencrypt}"
       - "traefik.http.services.wpconn-dashboard.loadbalancer.server.port=3000"
 
 networks:
