@@ -50,7 +50,7 @@ services:
       context: ./dashboard
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_API_URL: https://${DOMAIN_API}/api/v1
     restart: always
     environment:
       - NEXT_PUBLIC_API_URL=https://${DOMAIN_API}/api/v1

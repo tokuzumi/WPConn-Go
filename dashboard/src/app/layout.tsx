@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Playground IA",
+  title: "Wpp Dashboard",
   description: "Painel do Playground de IA",
 };
 
