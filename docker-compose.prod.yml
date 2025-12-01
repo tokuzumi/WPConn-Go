@@ -36,7 +36,7 @@ services:
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
       - "traefik.http.routers.wpconn-api.rule=Host(`${DOMAIN_API}`)"
       - "traefik.http.routers.wpconn-api.entrypoints=websecure"
-      - "traefik.http.routers.wpconn-api.tls.certresolver=myresolver"
+      - "traefik.http.routers.wpconn-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.wpconn-api.loadbalancer.server.port=8000"
 
   # Frontend Dashboard
@@ -59,7 +59,7 @@ services:
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
       - "traefik.http.routers.wpconn-dashboard.rule=Host(`${DOMAIN_APP}`)"
       - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.wpconn-dashboard.tls.certresolver=${TRAEFIK_RESOLVER:-letsencrypt}"
+      - "traefik.http.routers.wpconn-dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.services.wpconn-dashboard.loadbalancer.server.port=3000"
 
 networks:
