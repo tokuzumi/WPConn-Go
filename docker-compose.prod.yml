@@ -45,6 +45,7 @@ services:
 
   # Frontend Dashboard
   dashboard:
+    container_name: WppConn_Dashboard
     build:
       context: ./dashboard
       dockerfile: Dockerfile
