@@ -102,15 +102,41 @@ export interface DashboardStatsResponse {
     recent_errors: CriticalError[];
 }
 
+export interface TenantUpdateData {
+    name?: string;
+    waba_id?: string;
+    phone_number_id?: string;
+    token?: string;
+    webhook_url?: string;
+    is_active?: boolean;
+}
+
 export const api = {
-    getTenants: async (apiKey: string): Promise<Tenant[]> => {
-        const response = await fetch(`${API_URL}/tenants/`, {
+    getTenants: async (apiKey: string, params?: { limit?: number; offset?: number }): Promise<Tenant[]> => {
+        const query = new URLSearchParams();
+        if (params?.limit) query.append("limit", params.limit.toString());
+        if (params?.offset) query.append("offset", params.offset.toString());
+
+        const response = await fetch(`${API_URL}/tenants/?${query.toString()}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
             },
         });
         if (!response.ok) throw new Error("Failed to fetch tenants");
+        return response.json();
+    },
+
+    updateTenant: async (id: string, data: TenantUpdateData, apiKey: string): Promise<Tenant> => {
+        const response = await fetch(`${API_URL}/tenants/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": apiKey,
+            },
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error("Failed to update tenant");
         return response.json();
     },
 

@@ -8,6 +8,14 @@ class TenantCreate(BaseModel):
     token: str
     webhook_url: str | None = None
 
+class TenantUpdate(BaseModel):
+    name: str | None = None
+    waba_id: str | None = None
+    phone_number_id: str | None = None
+    token: str | None = None
+    webhook_url: str | None = None
+    is_active: bool | None = None
+
 class TenantResponse(BaseModel):
     id: UUID4
     name: str

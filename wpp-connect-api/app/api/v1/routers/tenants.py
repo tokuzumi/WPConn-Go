@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.schemas.tenant import TenantCreate, TenantResponse
+from app.schemas.tenant import TenantCreate, TenantResponse, TenantUpdate
 from app.db.repositories.tenant_repository import TenantRepository
 from app.services.log_service import AuditLogger
 
@@ -35,10 +35,36 @@ async def create_tenant(
 
 @router.get("/", response_model=list[TenantResponse])
 async def get_tenants(
+    limit: int = 100,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db)
 ):
     repo = TenantRepository(db)
-    return await repo.get_all()
+    return await repo.get_all(limit, offset)
+
+@router.put("/{tenant_id}", response_model=TenantResponse)
+async def update_tenant(
+    tenant_id: str,
+    tenant: TenantUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    repo = TenantRepository(db)
+    updated_tenant = await repo.update_tenant(tenant_id, tenant)
+    
+    if not updated_tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found"
+        )
+        
+    await AuditLogger.log(
+        db, 
+        "tenant_updated", 
+        {"tenant_id": tenant_id, "updates": tenant.model_dump(exclude_unset=True)},
+        tenant_id=updated_tenant.id
+    )
+    
+    return updated_tenant
 
 @router.delete("/{tenant_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_tenant(

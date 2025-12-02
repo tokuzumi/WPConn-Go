@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.models import Tenant
-from app.schemas.tenant import TenantCreate
+from app.schemas.tenant import TenantCreate, TenantUpdate
 import secrets
 
 class TenantRepository:
@@ -33,10 +33,26 @@ class TenantRepository:
         result = await self.db.execute(query)
         return result.scalars().first()
 
-    async def get_all(self) -> list[Tenant]:
-        query = select(Tenant)
+    async def get_all(self, limit: int = 100, offset: int = 0) -> list[Tenant]:
+        query = select(Tenant).limit(limit).offset(offset)
         result = await self.db.execute(query)
         return result.scalars().all()
+
+    async def update_tenant(self, tenant_id: str, tenant_in: TenantUpdate) -> Tenant | None:
+        query = select(Tenant).where(Tenant.id == tenant_id)
+        result = await self.db.execute(query)
+        tenant = result.scalars().first()
+        
+        if not tenant:
+            return None
+
+        update_data = tenant_in.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(tenant, field, value)
+
+        await self.db.commit()
+        await self.db.refresh(tenant)
+        return tenant
 
     async def delete_tenant(self, tenant_id: str) -> bool:
         query = select(Tenant).where(Tenant.id == tenant_id)
