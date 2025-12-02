@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Eye, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export default function HistoryPage() {
@@ -17,6 +18,8 @@ export default function HistoryPage() {
     const [phoneFilter, setPhoneFilter] = useState("");
     const [activeTab, setActiveTab] = useState("global");
     const [page, setPage] = useState(1);
+    const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
     const limit = 50;
 
     const apiKey = process.env.NEXT_PUBLIC_API_KEY || "admin-key";
@@ -51,8 +54,63 @@ export default function HistoryPage() {
     const handleNextPage = () => setPage(p => p + 1);
     const handlePrevPage = () => setPage(p => Math.max(1, p - 1));
 
+    const handleViewDetails = (msg: Message) => {
+        setSelectedMessage(msg);
+        setIsSheetOpen(true);
+    };
+
     return (
         <div className="p-4 pt-1 space-y-4">
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetContent>
+                    <SheetHeader>
+                        <SheetTitle>Detalhes da Mensagem</SheetTitle>
+                        <SheetDescription>
+                            ID: {selectedMessage?.id}
+                        </SheetDescription>
+                    </SheetHeader>
+                    {selectedMessage && (
+                        <div className="mt-6 space-y-4">
+                            <div>
+                                <h4 className="text-sm font-medium">Data</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    {new Date(selectedMessage.created_at.endsWith("Z") ? selectedMessage.created_at : selectedMessage.created_at + "Z").toLocaleString()}
+                                </p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium">De/Para</h4>
+                                <p className="text-sm text-muted-foreground">{selectedMessage.phone}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium">Direção</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    {selectedMessage.direction === 'inbound' ? "Recebida" : "Enviada"}
+                                </p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium">Tipo</h4>
+                                <p className="text-sm text-muted-foreground capitalize">{selectedMessage.type}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium">Status</h4>
+                                <p className="text-sm text-muted-foreground capitalize">{selectedMessage.status}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium">Conteúdo Completo</h4>
+                                <div className="mt-1 rounded-md bg-muted p-2 text-sm whitespace-pre-wrap break-words">
+                                    {selectedMessage.content || (selectedMessage.media_url ? "Mídia: " + selectedMessage.media_url : "-")}
+                                </div>
+                            </div>
+                            {selectedMessage.wamid && (
+                                <div>
+                                    <h4 className="text-sm font-medium">WAMID</h4>
+                                    <p className="text-xs text-muted-foreground break-all">{selectedMessage.wamid}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </SheetContent>
+            </Sheet>
 
             <Tabs defaultValue="global" value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1); }} className="w-full">
                 <TabsList>
@@ -63,7 +121,7 @@ export default function HistoryPage() {
                 <div className="my-4 flex gap-4">
                     <div className="flex-1">
                         <Input
-                            placeholder="Buscar conteúdo..."
+                            placeholder="Buscar Mensagem"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') { setPage(1); loadMessages(); } }}
@@ -87,10 +145,10 @@ export default function HistoryPage() {
                 </div>
 
                 <TabsContent value="global" className="mt-0">
-                    <MessagesTable messages={messages} loading={loading} />
+                    <MessagesTable messages={messages} loading={loading} onViewDetails={handleViewDetails} />
                 </TabsContent>
                 <TabsContent value="phone" className="mt-0">
-                    <MessagesTable messages={messages} loading={loading} />
+                    <MessagesTable messages={messages} loading={loading} onViewDetails={handleViewDetails} />
                 </TabsContent>
 
                 <div className="flex justify-end gap-2 mt-4">
@@ -106,7 +164,7 @@ export default function HistoryPage() {
     );
 }
 
-function MessagesTable({ messages, loading }: { messages: Message[], loading: boolean }) {
+function MessagesTable({ messages, loading, onViewDetails }: { messages: Message[], loading: boolean, onViewDetails: (msg: Message) => void }) {
     return (
         <Card>
             <CardContent className="p-0">
@@ -117,8 +175,9 @@ function MessagesTable({ messages, loading }: { messages: Message[], loading: bo
                             <TableHead>Número</TableHead>
                             <TableHead>Direção</TableHead>
                             <TableHead>Tipo</TableHead>
-                            <TableHead>Conteúdo</TableHead>
+                            <TableHead>Mensagem</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead className="w-[50px]">Detalhes</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -134,17 +193,26 @@ function MessagesTable({ messages, loading }: { messages: Message[], loading: bo
                                     </span>
                                 </TableCell>
                                 <TableCell>{msg.type}</TableCell>
-                                <TableCell className="max-w-[300px] truncate">
-                                    {msg.content || (msg.media_url ? "Mídia" : "-")}
+                                <TableCell className="max-w-[300px]" title={msg.content || ""}>
+                                    {msg.content ? (
+                                        msg.content.length > 45 ? msg.content.substring(0, 45) + "..." : msg.content
+                                    ) : (
+                                        msg.media_url ? "Mídia" : "-"
+                                    )}
                                 </TableCell>
                                 <TableCell>
                                     <span className="capitalize">{msg.status}</span>
+                                </TableCell>
+                                <TableCell>
+                                    <Button variant="ghost" size="icon" onClick={() => onViewDetails(msg)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                         {messages.length === 0 && !loading && (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                                     Nenhuma mensagem encontrada.
                                 </TableCell>
                             </TableRow>
