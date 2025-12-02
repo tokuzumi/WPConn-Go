@@ -11,7 +11,14 @@ WPConn is a high-performance, asynchronous FastAPI backend designed to govern co
     -   **Sending**: Sends media directly from MinIO to WhatsApp, with intelligent caching to avoid redundant uploads.
 -   **Message Context**: Tracks message replies (`reply_to_wamid`) to maintain conversation history.
 -   **Webhook Gateway**: Robust webhook processing with idempotency and status tracking.
+-   **Asynchronous Worker**: Dedicated background worker for high-scale message processing, decoupling ingestion from logic.
 -   **Asynchronous Architecture**: Built with `asyncio`, `FastAPI`, and `SQLAlchemy` (Async) for high throughput.
+
+## 🚀 Scalability
+The system is designed for high scale:
+1.  **Ingestion**: The Webhook endpoint (`/api/v1/webhooks`) is lightweight and only persists the raw event to the DB.
+2.  **Processing**: The `worker` service processes events in batches (configurable via `WORKER_BATCH_SIZE`) using `SKIP LOCKED` to allow multiple concurrent worker instances without race conditions.
+
 
 ## 🛠️ Tech Stack
 

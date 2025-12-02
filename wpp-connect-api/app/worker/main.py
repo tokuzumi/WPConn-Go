@@ -1,4 +1,5 @@
 import asyncio
+import os
 import logging
 import traceback
 from datetime import datetime
@@ -23,7 +24,7 @@ async def process_events():
                     select(WebhookEvent)
                     .where(WebhookEvent.status == 'pending')
                     .order_by(WebhookEvent.created_at.asc())
-                    .limit(10)
+                    .limit(int(os.getenv("WORKER_BATCH_SIZE", "50")))
                     .with_for_update(skip_locked=True)
                 )
                 

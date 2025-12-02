@@ -12,6 +12,22 @@ services:
       - db
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+  worker:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/wpp_connect
+      - APP_SECRET=${APP_SECRET}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+    depends_on:
+      - db
+    command: python -m app.worker.main
+    volumes:
+      - .:/app
+
   db:
     image: postgres:15-alpine
     volumes:
