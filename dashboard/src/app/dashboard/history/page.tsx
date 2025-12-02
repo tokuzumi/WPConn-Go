@@ -78,7 +78,7 @@ export default function HistoryPage() {
                                 </p>
                             </div>
                             <div>
-                                <h4 className="text-sm font-medium">De/Para</h4>
+                                <h4 className="text-sm font-medium">{selectedMessage.direction === 'inbound' ? "De" : "Para"}</h4>
                                 <p className="text-sm text-muted-foreground">{selectedMessage.phone}</p>
                             </div>
                             <div>
@@ -188,7 +188,7 @@ function MessagesTable({ messages, loading, onViewDetails }: { messages: Message
                                 </TableCell>
                                 <TableCell>{msg.phone}</TableCell>
                                 <TableCell>
-                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${msg.direction === 'inbound' ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}>
+                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${msg.direction === 'inbound' ? "bg-green-100 text-green-800 border border-green-200" : "bg-blue-100 text-blue-800 border border-blue-200"}`}>
                                         {msg.direction === 'inbound' ? "Recebida" : "Enviada"}
                                     </span>
                                 </TableCell>

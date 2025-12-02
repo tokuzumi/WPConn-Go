@@ -49,28 +49,34 @@ async def send_message(
                 storage_service = StorageService()
                 meta_client = MetaClient(tenant.token, tenant.phone_number_id)
                 
-                # Get stream from MinIO
-                # Note: get_stream returns a botocore StreamingBody, which has a read() method.
-                # However, it's blocking IO if not handled carefully, but aioboto3 should be async.
-                # Actually aioboto3 get_object returns a wrapper.
-                # Let's verify what get_stream returns in our implementation.
-                # It returns response["Body"].
-                
-                stream = await storage_service.get_stream(media_url)
-                
-                # Upload to Meta
-                # We need to determine content type.
-                # For now, we rely on request.media_type or default.
+                # Determine MIME type
                 mime_type = "application/octet-stream"
                 if media_type == "image": mime_type = "image/jpeg"
                 elif media_type == "video": mime_type = "video/mp4"
                 elif media_type == "audio": mime_type = "audio/mpeg"
                 elif media_type == "document": mime_type = "application/pdf"
-                
-                # We pass the stream directly. 
-                # If MetaClient.upload_media expects a file-like object with read(), 
-                # aioboto3 stream should satisfy it (it has read/iter_chunks).
-                meta_media_id = await meta_client.upload_media(stream, mime_type)
+
+                # Check if URL is public (http/https) or internal (MinIO)
+                if media_url.startswith("http"):
+                    # Public URL: Download and stream to Meta
+                    import httpx
+                    async with httpx.AsyncClient() as client:
+                        async with client.stream("GET", media_url) as response:
+                            if response.status_code == 200:
+                                # We need to pass the stream to upload_media
+                                # Note: upload_media expects a file-like object or bytes.
+                                # httpx stream yields bytes. We might need to read it all into memory 
+                                # if upload_media doesn't support async generator.
+                                # For simplicity and robust testing, let's read it.
+                                # (Limit size in production, but fine for test)
+                                file_content = await response.aread()
+                                meta_media_id = await meta_client.upload_media(file_content, mime_type)
+                            else:
+                                raise HTTPException(status_code=400, detail=f"Failed to download media from URL: {response.status_code}")
+                else:
+                    # MinIO Path
+                    stream = await storage_service.get_stream(media_url)
+                    meta_media_id = await meta_client.upload_media(stream, mime_type)
                 
                 if not meta_media_id:
                     raise HTTPException(status_code=500, detail="Failed to upload media to Meta")
