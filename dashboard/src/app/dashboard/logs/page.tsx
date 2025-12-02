@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LogsPage() {
@@ -77,13 +77,13 @@ export default function LogsPage() {
                 </div>
 
                 <TabsContent value="global" className="mt-0">
-                    <LogsTable logs={logs} loading={loading} />
+                    <LogsTable logs={logs} loading={loading} apiKey={apiKey} onRetrySuccess={loadLogs} />
                 </TabsContent>
                 <TabsContent value="phone" className="mt-0">
-                    <LogsTable logs={logs} loading={loading} />
+                    <LogsTable logs={logs} loading={loading} apiKey={apiKey} onRetrySuccess={loadLogs} />
                 </TabsContent>
                 <TabsContent value="errors" className="mt-0">
-                    <LogsTable logs={logs} loading={loading} />
+                    <LogsTable logs={logs} loading={loading} apiKey={apiKey} onRetrySuccess={loadLogs} />
                 </TabsContent>
 
                 <div className="flex justify-end gap-2 mt-4">
@@ -99,7 +99,25 @@ export default function LogsPage() {
     );
 }
 
-function LogsTable({ logs, loading }: { logs: Log[], loading: boolean }) {
+function LogsTable({ logs, loading, apiKey, onRetrySuccess }: { logs: Log[], loading: boolean, apiKey: string, onRetrySuccess: () => void }) {
+    const [retrying, setRetrying] = useState<number | null>(null);
+
+    const handleRetry = async (logId: number) => {
+        setRetrying(logId);
+        const toastId = toast.loading("Reenviando webhook...");
+        try {
+            await api.retryWebhook(logId, apiKey);
+            toast.dismiss(toastId);
+            toast.success("Webhook reenviado com sucesso!");
+            onRetrySuccess();
+        } catch (error: any) {
+            toast.dismiss(toastId);
+            toast.error("Falha ao reenviar: " + (error.message || "Erro desconhecido"));
+        } finally {
+            setRetrying(null);
+        }
+    };
+
     return (
         <Card>
             <CardContent className="p-0">
@@ -110,6 +128,7 @@ function LogsTable({ logs, loading }: { logs: Log[], loading: boolean }) {
                             <TableHead>Evento</TableHead>
                             <TableHead>Detalhes</TableHead>
                             <TableHead>Tenant ID</TableHead>
+                            <TableHead className="w-[100px]">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -125,11 +144,24 @@ function LogsTable({ logs, loading }: { logs: Log[], loading: boolean }) {
                                 <TableCell className="font-mono text-xs">
                                     {log.tenant_id || "-"}
                                 </TableCell>
+                                <TableCell>
+                                    {log.event === 'webhook_delivery_failed' && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleRetry(log.id)}
+                                            disabled={retrying === log.id}
+                                        >
+                                            <RefreshCw className={`h-3 w-3 mr-1 ${retrying === log.id ? 'animate-spin' : ''}`} />
+                                            Reenviar
+                                        </Button>
+                                    )}
+                                </TableCell>
                             </TableRow>
                         ))}
                         {logs.length === 0 && !loading && (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                                     Nenhum log encontrado.
                                 </TableCell>
                             </TableRow>

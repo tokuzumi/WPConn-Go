@@ -116,6 +116,49 @@ class WebhookService:
                         db.add(new_message)
                         logger.info(f"Received new message {wamid} from {from_number} (Status: {status})")
 
+                        # Webhook Forwarding (Messages Only)
+                        if tenant.webhook_url:
+                            try:
+                                import httpx
+                                # Prepare payload for external webhook
+                                # We send the internal Message object structure or a simplified version
+                                forward_payload = {
+                                    "id": str(new_message.id),
+                                    "wamid": wamid,
+                                    "phone": from_number,
+                                    "direction": "inbound",
+                                    "type": msg_type,
+                                    "status": status,
+                                    "content": content,
+                                    "media_url": media_url,
+                                    "media_type": media_type,
+                                    "caption": caption,
+                                    "created_at": new_message.created_at.isoformat() if new_message.created_at else datetime.utcnow().isoformat()
+                                }
+                                
+                                # Fire and forget (or log error)
+                                # We use a short timeout to not block the worker too long
+                                async with httpx.AsyncClient() as client:
+                                    await client.post(
+                                        tenant.webhook_url, 
+                                        json=forward_payload, 
+                                        timeout=5.0
+                                    )
+                                logger.info(f"Forwarded message {wamid} to {tenant.webhook_url}")
+                            except Exception as e:
+                                logger.error(f"Failed to forward message {wamid} to {tenant.webhook_url}: {e}")
+                                from app.services.log_service import AuditLogger
+                                await AuditLogger.log(
+                                    db,
+                                    "webhook_delivery_failed",
+                                    {
+                                        "error": str(e),
+                                        "payload": forward_payload,
+                                        "url": tenant.webhook_url
+                                    },
+                                    tenant_id=tenant.id
+                                )
+
                 await db.commit()
 
         except Exception as e:

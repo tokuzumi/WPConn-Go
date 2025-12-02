@@ -36,3 +36,10 @@ class MessageRepository:
         
         result = await self.db.execute(query)
         return result.scalars().all()
+
+    async def get_by_id(self, message_id: str, tenant_id: Optional[str] = None) -> Optional[Message]:
+        query = select(Message).where(Message.id == message_id)
+        if tenant_id:
+            query = query.where(Message.tenant_id == tenant_id)
+        result = await self.db.execute(query)
+        return result.scalars().first()

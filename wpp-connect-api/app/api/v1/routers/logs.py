@@ -64,3 +64,70 @@ async def get_logs(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
+
+@router.post("/{log_id}/retry")
+async def retry_webhook(
+    log_id: int,
+    db: AsyncSession = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    # 1. Fetch Log
+    from sqlalchemy import select
+    query = select(AuditLog).where(AuditLog.id == log_id)
+    if tenant.id != "admin":
+        query = query.where(AuditLog.tenant_id == tenant.id)
+    
+    result = await db.execute(query)
+    log_entry = result.scalars().first()
+    
+    if not log_entry:
+        raise HTTPException(status_code=404, detail="Log not found")
+        
+    # 2. Validate Event Type
+    if log_entry.event != "webhook_delivery_failed":
+        raise HTTPException(status_code=400, detail="Only failed webhook logs can be retried")
+        
+    # 3. Parse Detail
+    import json
+    try:
+        detail_data = json.loads(log_entry.detail)
+    except:
+        raise HTTPException(status_code=500, detail="Failed to parse log details")
+        
+    payload = detail_data.get("payload")
+    url = detail_data.get("url")
+    
+    if not payload or not url:
+        raise HTTPException(status_code=400, detail="Log details missing payload or url")
+        
+    # 4. Resend
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, timeout=10.0)
+            
+            # 5. Log Result
+            if response.status_code in [200, 201, 202, 204]:
+                # Success! We can maybe update the old log or create a new "success" log.
+                # Let's create a new log to show it worked.
+                from app.services.log_service import AuditLogger
+                await AuditLogger.log(
+                    db,
+                    "webhook_delivery_retry_success",
+                    {"original_log_id": log_id, "status_code": response.status_code},
+                    tenant_id=log_entry.tenant_id
+                )
+                return {"status": "success", "detail": "Webhook resent successfully"}
+            else:
+                raise Exception(f"Received status code {response.status_code}")
+                
+    except Exception as e:
+         # Log the retry failure too
+        from app.services.log_service import AuditLogger
+        await AuditLogger.log(
+            db,
+            "webhook_delivery_retry_failed",
+            {"original_log_id": log_id, "error": str(e)},
+            tenant_id=log_entry.tenant_id
+        )
+        raise HTTPException(status_code=502, detail=f"Retry failed: {str(e)}")

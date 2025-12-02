@@ -196,6 +196,20 @@ export const api = {
         return response.json();
     },
 
+    retryWebhook: async (logId: number, apiKey: string): Promise<any> => {
+        const response = await fetch(`${API_URL}/logs/${logId}/retry`, {
+            method: "POST",
+            headers: {
+                "x-api-key": apiKey,
+            },
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Failed to retry webhook");
+        }
+        return response.json();
+    },
+
     getUsers: async (apiKey: string): Promise<User[]> => {
         const response = await fetch(`${API_URL}/users/`, {
             method: "GET",

@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wpp Dashboard",
-  description: "Painel do Playground de IA",
+  title: "WPConn Dashboard",
+  description: "WhatsApp Connection Manager",
 };
 
 export default function RootLayout({

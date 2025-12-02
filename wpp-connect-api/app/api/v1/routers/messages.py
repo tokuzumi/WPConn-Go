@@ -163,3 +163,19 @@ async def get_messages(
     repo = MessageRepository(db)
     tenant_id = None if tenant.id == "admin" else str(tenant.id)
     return await repo.get_messages(tenant_id, limit, offset, phone, search)
+
+@router.get("/{message_id}", response_model=MessageResponse)
+async def get_message(
+    message_id: str,
+    db: AsyncSession = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    from app.db.repositories.message_repository import MessageRepository
+    repo = MessageRepository(db)
+    tenant_id = None if tenant.id == "admin" else str(tenant.id)
+    
+    message = await repo.get_by_id(message_id, tenant_id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+        
+    return message
