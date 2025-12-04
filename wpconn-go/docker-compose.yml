@@ -34,7 +34,7 @@ services:
     image: temporalio/auto-setup:latest
     container_name: wpconn-temporal
     environment:
-      - DB=postgresql
+      - DB=postgres12
       - DB_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PWD=${POSTGRES_PASSWORD:-postgres}

@@ -9,12 +9,15 @@ import (
 	"time"
 
 	"wpconn-go/api"
+	"wpconn-go/internal/activities"
 	"wpconn-go/internal/database"
+	"wpconn-go/internal/workflows"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/worker"
 )
 
 func main() {
@@ -51,6 +54,17 @@ func main() {
 	}
 	defer temporalClient.Close()
 	log.Println("Connected to Temporal!")
+
+	// 2.5 Start Temporal Worker
+	w := worker.New(temporalClient, "WHATSAPP_TASK_QUEUE", worker.Options{})
+	w.RegisterWorkflow(workflows.ConversationWorkflow)
+	w.RegisterActivity(&activities.Activities{})
+
+	go func() {
+		if err := w.Run(worker.InterruptCh()); err != nil {
+			log.Fatalf("Unable to start worker: %v", err)
+		}
+	}()
 
 	// 3. Fiber App
 	app := fiber.New(fiber.Config{
