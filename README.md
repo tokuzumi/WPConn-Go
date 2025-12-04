@@ -1,155 +1,46 @@
-# WPConn - WhatsApp Cloud API Gateway
+# WPConn - WhatsApp Cloud API Gateway (Go + Temporal)
 
-WPConn is a high-performance, asynchronous FastAPI backend designed to govern communication with the WhatsApp Cloud API. It replaces third-party solutions like Evolution API, giving you full control over your WhatsApp integration.
+WPConn is a high-performance, durable backend designed to govern communication with the WhatsApp Cloud API. Rebuilt in **Go 1.24** and **Temporal**, it ensures ultra-low latency webhook handling and reliable background processing.
 
 ## 🚀 Features
 
--   **Multi-Tenancy**: Support for multiple tenants (clients), each with their own WhatsApp credentials.
--   **Secure Authentication**: API Key-based authentication for all endpoints.
--   **Media Support**:
-    -   **Receiving**: Automatically streams media (Images, Videos, Audio, Documents) from Meta to your own MinIO storage.
-    -   **Sending**: Sends media directly from MinIO to WhatsApp, with intelligent caching to avoid redundant uploads.
--   **Message Context**: Tracks message replies (`reply_to_wamid`) to maintain conversation history.
--   **Webhook Gateway**: Robust webhook processing with idempotency and status tracking.
--   **Asynchronous Worker**: Dedicated background worker for high-scale message processing, decoupling ingestion from logic.
--   **Asynchronous Architecture**: Built with `asyncio`, `FastAPI`, and `SQLAlchemy` (Async) for high throughput.
-
-## 🚀 Scalability
-The system is designed for high scale:
-1.  **Ingestion**: The Webhook endpoint (`/api/v1/webhooks`) is lightweight and only persists the raw event to the DB.
-2.  **Processing**: The `worker` service processes events in batches (configurable via `WORKER_BATCH_SIZE`) using `SKIP LOCKED` to allow multiple concurrent worker instances without race conditions.
-
+-   **Go Core**: Built with Fiber v3 for extreme performance.
+-   **Durable Execution**: Temporal workflows manage complex business logic and retries.
+-   **Docker-First**: Optimized for containerized environments (Dev & Prod).
+-   **Zero-Trust Media**: Passes media IDs to workflows without downloading content in the gateway.
+-   **Hot-Reload**: Integrated `air` for seamless local development.
 
 ## 🛠️ Tech Stack
 
--   **Language**: Python 3.10+
--   **Framework**: FastAPI
--   **Database**: PostgreSQL (Async via SQLAlchemy)
--   **Storage**: MinIO (S3 Compatible)
--   **HTTP Client**: `httpx` (Async)
+-   **Language**: Go 1.24
+-   **Framework**: Fiber v3
+-   **Orchestration**: Temporal.io
+-   **Database**: PostgreSQL
+-   **Dashboard**: Next.js (React)
 
 ## 🚀 Quick Start (Docker)
 
-To run the full project (Dashboard + API + Database) using Docker:
+To run the full project (Dashboard + API + Temporal + Database):
 
-### 1. Start the Backend (API & Database)
-This will start the PostgreSQL database and the FastAPI backend.
-
+### 1. Configuration
+Copy the `.env` file into `wpconn-go/`:
 ```bash
-cd wpp-connect-api
-docker-compose up -d --build
+cp .env.example wpconn-go/.env
+# Edit wpconn-go/.env with your credentials
 ```
-- **API**: http://localhost:8000
-- **Docs**: http://localhost:8000/docs
 
-### 2. Start the Frontend (Dashboard)
-This will start the Next.js dashboard.
-
+### 2. Start Services
 ```bash
-cd dashboard
-docker-compose up -d --build
-```
-- **Dashboard**: http://localhost:3000
-- **Login**: `admin` / `admin`
-
-## ⚙️ Manual Setup (Local Development)
-
-### 1. Prerequisites
--   Python 3.10+
--   PostgreSQL
--   MinIO Server
-
-### 2. Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/tokuzumi/WPConn.git
-cd WPConn/wpp-connect-api
-
-# Create virtual environment
-python -m venv venv
-.\venv\Scripts\activate # Windows
-# source venv/bin/activate # Linux/Mac
-
-# Install dependencies
-pip install -r requirements.txt
+cd wpconn-go
+docker-compose up --build
 ```
 
-### 3. Configuration
+### 3. Access
+-   **Dashboard**: http://localhost:3001 (or https://app.talkingcar.com.br via Traefik)
+-   **API**: http://localhost:3002/api/v1 (Internal) / https://webhook.talkingcar.com.br (Public)
+-   **Temporal UI**: http://localhost:8080 (or https://temporal.talkingcar.com.br)
 
-Create a `.env` file in the root directory:
+## 📂 Project Structure
 
-```env
-# Database
-DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/wpconn_db
-
-# Security
-SECRET_KEY=your_super_secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Meta / WhatsApp
-APP_SECRET=your_meta_app_secret
-WEBHOOK_VERIFY_TOKEN=your_verify_token
-
-# MinIO (Storage)
-MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=your_minio_access_key
-MINIO_SECRET_KEY=your_minio_secret_key
-MINIO_BUCKET_NAME=whatsapp-media
-MINIO_USE_SSL=false
-```
-
-### 4. Database Migrations
-
-```bash
-alembic upgrade head
-```
-
-## 🏃‍♂️ Running the API
-
-```bash
-uvicorn app.main:app --reload
-```
-
-The API will be available at `http://localhost:8000`.
-
-## 📚 API Documentation
-
-Interactive API documentation (Swagger UI) is automatically generated and available at:
--   **Swagger UI**: `http://localhost:8000/docs`
--   **ReDoc**: `http://localhost:8000/redoc`
-
-### Key Endpoints
-
-#### Authentication
-All endpoints (except Webhooks) require an `x-api-key` header.
-
-#### Sending Messages
-
-**Text Message:**
-```json
-POST /api/v1/messages/send
-{
-  "to_number": "5511999999999",
-  "content": "Hello World!"
-}
-```
-
-**Media Message:**
-```json
-POST /api/v1/messages/send
-{
-  "to_number": "5511999999999",
-  "media_url": "bucket/path/to/image.jpg",
-  "media_type": "image",
-  "caption": "Check this out!"
-}
-```
-
-## 🧪 Verification Scripts
-
-The project includes several scripts to verify functionality:
--   `verify_media_flow.py`: Tests receiving media and saving to MinIO.
--   `verify_send_media.py`: Tests sending media from MinIO to WhatsApp.
--   `verify_reply_flow.py`: Tests message reply context.
+-   `wpconn-go/`: Go Backend & Temporal Worker
+-   `dashboard/`: Next.js Frontend

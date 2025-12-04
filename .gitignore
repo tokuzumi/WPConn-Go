@@ -18,3 +18,8 @@ Thumbs.db
 
 # Docker e Logs
 *.log
+
+# Go
+wpconn-go/tmp/
+wpconn-go/main
+

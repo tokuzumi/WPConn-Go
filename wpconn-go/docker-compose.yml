@@ -1,0 +1,102 @@
+services:
+  # Go Application
+  app:
+    build:
+      context: .
+      target: dev
+    container_name: wpconn-go-app
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - TEMPORAL_HOST_PORT=temporal:7233
+      - WEBHOOK_VERIFY_TOKEN=${WEBHOOK_VERIFY_TOKEN}
+      - APP_SECRET=${APP_SECRET}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+    ports:
+      - "3002:3000"
+    depends_on:
+      - postgres
+      - temporal
+    networks:
+      - default
+      - traefik_public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.http.routers.wpconn-go.rule=Host(`webhook.talkingcar.com.br`)"
+      - "traefik.http.routers.wpconn-go.entrypoints=websecure"
+      - "traefik.http.routers.wpconn-go.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wpconn-go.loadbalancer.server.port=3000"
+
+  # Temporal Server
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: wpconn-temporal
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PWD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      - postgres
+    networks:
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temporal-ui.rule=Host(`temporal.talkingcar.com.br`)"
+      - "traefik.http.services.temporal-ui.loadbalancer.server.port=8080"
+
+  # Postgres Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: wpconn-postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-wpp_connect}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - default
+
+  # Existing Dashboard (Next.js)
+  dashboard:
+    container_name: wpconn-dashboard
+    build:
+      context: ../dashboard
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://webhook.talkingcar.com.br
+        NEXT_PUBLIC_API_KEY: ${APP_SECRET}
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=https://webhook.talkingcar.com.br
+      - NEXT_PUBLIC_API_KEY=${APP_SECRET}
+      - NEXTAUTH_URL=https://app.talkingcar.com.br
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    ports:
+      - "3001:3000"
+    networks:
+      - default
+      - traefik_public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.http.routers.wpconn-dashboard.rule=Host(`app.talkingcar.com.br`)"
+      - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.wpconn-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wpconn-dashboard.loadbalancer.server.port=3000"
+
+networks:
+  default:
+    driver: bridge
+  traefik_public:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy}
+
+volumes:
+  postgres_data:
