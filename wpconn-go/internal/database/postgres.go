@@ -23,7 +23,7 @@ func Connect() {
 	}
 
 	// Connection pool settings
-	config.MaxConns = 25
+	config.MaxConns = 80
 	config.MinConns = 2
 	config.MaxConnLifetime = time.Hour
 	config.MaxConnIdleTime = 30 * time.Minute
