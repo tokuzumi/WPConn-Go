@@ -65,11 +65,11 @@ func CreateTenant(c fiber.Ctx) error {
 	}
 
 	query := `
-		INSERT INTO tenants (name, phone_number_id, token, api_key, is_active)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO tenants (name, waba_id, phone_number_id, token, api_key, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at
 	`
-	err := database.Pool.QueryRow(context.Background(), query, req.Name, req.PhoneNumberID, req.Token, req.APIKey, true).Scan(&req.ID, &req.CreatedAt)
+	err := database.Pool.QueryRow(context.Background(), query, req.Name, req.WabaID, req.PhoneNumberID, req.Token, req.APIKey, true).Scan(&req.ID, &req.CreatedAt)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create tenant: " + err.Error()})
 	}

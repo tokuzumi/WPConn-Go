@@ -1,4 +1,22 @@
 -- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Tenants Table
+CREATE TABLE IF NOT EXISTS tenants (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    waba_id VARCHAR(255) NOT NULL,
+    phone_number_id VARCHAR(255) UNIQUE NOT NULL,
+    token TEXT NOT NULL,
+    api_key VARCHAR(255) UNIQUE NOT NULL,
+    webhook_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Messages Table
+CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID REFERENCES tenants(id),
     wamid VARCHAR(255) UNIQUE NOT NULL,
@@ -36,6 +54,3 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_messages_wamid ON messages(wamid);
 CREATE INDEX IF NOT EXISTS idx_messages_tenant_id ON messages(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_phone_number_id ON tenants(phone_number_id);
-
--- Temporal Database (Optional, if we want to separate)
--- CREATE DATABASE temporal; -- Cannot run inside transaction block usually, handled by docker-entrypoint-initdb.d behavior
