@@ -1,7 +1,7 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tenants Table
+-- Tenants Table (Must be created first)
 CREATE TABLE IF NOT EXISTS tenants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Users Table
+-- Users Table (Dashboard)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Indexes
+-- Indexes for Performance
 CREATE INDEX IF NOT EXISTS idx_messages_wamid ON messages(wamid);
 CREATE INDEX IF NOT EXISTS idx_messages_tenant_id ON messages(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_phone_number_id ON tenants(phone_number_id);
+CREATE INDEX IF NOT EXISTS idx_tenants_api_key ON tenants(api_key);
