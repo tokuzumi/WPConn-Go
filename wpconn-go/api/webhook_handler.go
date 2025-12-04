@@ -23,15 +23,6 @@ type WebhookHandler struct {
 	Temporal client.Client
 }
 
-func SetupRoutes(app *fiber.App, temporal client.Client) {
-	handler := &WebhookHandler{Temporal: temporal}
-	
-	// Meta Webhook Verification (GET)
-	app.Get("/api/v1/webhooks", handler.VerifyWebhook)
-	
-	// Meta Webhook Event (POST)
-	app.Post("/api/v1/webhooks", handler.HandleWebhook)
-}
 
 func (h *WebhookHandler) VerifyWebhook(c fiber.Ctx) error {
 	mode := c.Query("hub.mode")

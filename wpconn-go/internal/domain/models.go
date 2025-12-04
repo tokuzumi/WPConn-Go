@@ -11,6 +11,7 @@ type Tenant struct {
 	WabaID        string    `json:"waba_id" db:"waba_id"`
 	PhoneNumberID string    `json:"phone_number_id" db:"phone_number_id"`
 	Token         string    `json:"token" db:"token"`
+	APIKey        string    `json:"api_key" db:"api_key"`
 	WebhookURL    string    `json:"webhook_url" db:"webhook_url"`
 	IsActive      bool      `json:"is_active" db:"is_active"`
 	CreatedAt     time.Time `json:"created_at" db:"created_at"`

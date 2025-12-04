@@ -1,21 +1,4 @@
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Tenants Table
-CREATE TABLE IF NOT EXISTS tenants (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    waba_id VARCHAR(255) NOT NULL,
-    phone_number_id VARCHAR(255) NOT NULL,
-    token TEXT NOT NULL,
-    webhook_url TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Messages Table
-CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID REFERENCES tenants(id),
     wamid VARCHAR(255) UNIQUE NOT NULL,
