@@ -61,6 +61,7 @@ func main() {
 	w.RegisterActivity(&activities.Activities{})
 
 	go func() {
+		log.Println("Starting Temporal Worker...")
 		if err := w.Run(worker.InterruptCh()); err != nil {
 			log.Fatalf("Unable to start worker: %v", err)
 		}
