@@ -55,7 +55,7 @@ func ConversationWorkflow(ctx workflow.Context) error {
 		// 2. Check Media
 		if msg.Type == "image" || msg.Type == "video" || msg.Type == "audio" || msg.Type == "document" || msg.Type == "sticker" {
 			var mediaURL string
-			err := workflow.ExecuteActivity(ctx, a.ResolveMediaUrl, msg.MetaMediaID).Get(ctx, &mediaURL)
+			err := workflow.ExecuteActivity(ctx, a.ResolveMediaUrl, msg.MetaMediaID, msg.BusinessPhoneID).Get(ctx, &mediaURL)
 			if err != nil {
 				logger.Error("Failed to resolve media URL", "error", err)
 				// Update status to failed?

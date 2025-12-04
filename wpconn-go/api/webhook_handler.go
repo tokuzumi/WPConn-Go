@@ -90,6 +90,7 @@ func (h *WebhookHandler) HandleWebhook(c fiber.Ctx) error {
 						Status:      "pending",
 						Content:     extractContent(msg),
 						MetaMediaID: extractMediaID(msg),
+						BusinessPhoneID: phoneNumberID,
 						CreatedAt:   time.Now(), // Or use msg.Timestamp if available
 						// TenantID: We need to resolve this from PhoneNumberID usually.
 						// For now, we leave it empty or pass PhoneNumberID to workflow to resolve.

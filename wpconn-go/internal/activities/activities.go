@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"wpconn-go/internal/database"
@@ -72,20 +71,15 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 	return nil
 }
 
-func (a *Activities) ResolveMediaUrl(ctx context.Context, mediaID string) (string, error) {
-	log.Printf("Resolving media URL for ID: %s", mediaID)
+func (a *Activities) ResolveMediaUrl(ctx context.Context, mediaID string, businessPhoneID string) (string, error) {
+	log.Printf("Resolving media URL for ID: %s (Phone: %s)", mediaID, businessPhoneID)
 	
-	// accessToken := os.Getenv("APP_SECRET") // Using APP_SECRET as token? Usually it's a System User Token.
-	// Requirement says: "Mantenha o uso de variáveis de ambiente para credenciais (`APP_SECRET`, `META_TOKEN`)."
-	// Let's assume META_TOKEN is the one for Graph API.
-	metaToken := os.Getenv("META_TOKEN")
-	if metaToken == "" {
-		// Fallback or error?
-		// If user didn't provide META_TOKEN in .env yet, we might fail.
-		// But let's check if they meant APP_SECRET. Usually APP_SECRET is for signature.
-		// Let's assume META_TOKEN is needed.
-		// For now, I'll use os.Getenv("WEBHOOK_VERIFY_TOKEN") as a placeholder if META_TOKEN is missing? No, that's for verification.
-		// I will log a warning if missing.
+	// Lookup Token from DB
+	var metaToken string
+	query := `SELECT token FROM tenants WHERE phone_number_id = $1 LIMIT 1`
+	err := database.Pool.QueryRow(ctx, query, businessPhoneID).Scan(&metaToken)
+	if err != nil {
+		return "", fmt.Errorf("failed to get tenant token for phone %s: %w", businessPhoneID, err)
 	}
 
 	url := fmt.Sprintf("https://graph.facebook.com/v17.0/%s", mediaID)

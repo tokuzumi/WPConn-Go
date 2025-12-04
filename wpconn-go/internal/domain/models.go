@@ -29,6 +29,7 @@ type Message struct {
 	MediaURL     string    `json:"media_url" db:"media_url"`
 	MetaMediaID  string    `json:"meta_media_id" db:"meta_media_id"`
 	ReplyToWamid string    `json:"reply_to_wamid" db:"reply_to_wamid"`
+	BusinessPhoneID string `json:"business_phone_id" db:"-"` // Context only, not persisted
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 }
 
