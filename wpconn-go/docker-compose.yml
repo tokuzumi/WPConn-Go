@@ -14,7 +14,7 @@ services:
       - APP_SECRET=${APP_SECRET}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
     ports:
-      - "3002:3000"
+      - "3090:3000"
     depends_on:
       - postgres
       - temporal
