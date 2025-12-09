@@ -121,6 +121,7 @@ export const api = {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
+                "x-api-key": apiKey,
             },
         });
         if (!response.ok) throw new Error("Failed to fetch tenants");
