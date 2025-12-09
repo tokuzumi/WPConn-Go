@@ -76,11 +76,11 @@ services:
       context: ../dashboard
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://webhook.talkingcar.com.br
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_API_KEY: ${APP_SECRET}
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=https://webhook.talkingcar.com.br
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NEXT_PUBLIC_API_KEY=${APP_SECRET}
       - NEXTAUTH_URL=https://app.talkingcar.com.br
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}

@@ -18,7 +18,13 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         // TODO: Get real API key from auth context or secure storage
-        const apiKey = "your-api-key";
+        const apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
+        
+        if (!apiKey) {
+           console.error("NEXT_PUBLIC_API_KEY is not defined");
+           // Optional: You could allow it to fail gracefully if the backend allows public access, 
+           // but given the 401 error, we know it requires a key.
+        }
         const data = await api.getDashboardStats(apiKey);
         setStats(data);
       } catch (error) {
