@@ -33,5 +33,18 @@ func SetupRoutes(app *fiber.App, temporal client.Client) {
 	v1.Post("/tenants", handlers.CreateTenant)
 
 	// Messages
+	// Messages
 	v1.Get("/messages", handlers.GetMessages)
+
+    // Users (Public Login)
+    app.Post("/api/v1/users/login", handlers.Login)
+
+    // Users (Protected)
+    v1.Get("/users", handlers.GetUsers)
+    v1.Post("/users", handlers.CreateUser)
+    v1.Delete("/users/:id", handlers.DeleteUser)
+
+    // Logs
+    v1.Get("/logs", handlers.GetLogs)
+    v1.Post("/logs/:id/retry", webhookHandler.RetryWebhook)
 }

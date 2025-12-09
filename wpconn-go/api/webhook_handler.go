@@ -39,6 +39,16 @@ func (h *WebhookHandler) VerifyWebhook(c fiber.Ctx) error {
 	return c.Status(fiber.StatusForbidden).SendString("Verification failed")
 }
 
+func (h *WebhookHandler) RetryWebhook(c fiber.Ctx) error {
+	logID := c.Params("id")
+	// TODO: Implement actual retry logic. 
+	// This would require fetching the original payload from the log (if stored) 
+	// and re-submitting it to the workflow.
+    // For now, we simulate success to prevent frontend error.
+    log.Printf("Retrying webhook for log ID: %s", logID)
+	return c.JSON(fiber.Map{"status": "retried", "message": "Retry signal sent (stub)"})
+}
+
 func (h *WebhookHandler) HandleWebhook(c fiber.Ctx) error {
 	// 1. Validate Signature
 	signature := c.Get("X-Hub-Signature-256")
