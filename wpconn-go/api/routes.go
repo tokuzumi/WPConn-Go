@@ -17,6 +17,11 @@ func SetupRoutes(app *fiber.App, temporal client.Client) {
 	webhooks.Get("/", webhookHandler.VerifyWebhook)
 	webhooks.Post("/", webhookHandler.HandleWebhook)
 
+	// Health Check (Public)
+	app.Get("/health", func(c fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+	})
+
 	// Protected Routes (Dashboard API)
 	v1 := app.Group("/api/v1", middleware.AuthMiddleware)
 
