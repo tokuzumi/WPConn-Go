@@ -24,7 +24,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
-      - "traefik.http.routers.wpconn-go.rule=Host(`webhook.talkingcar.com.br`)"
+      - "traefik.http.routers.wpconn-go.rule=Host(`webhook.uaaldrive.com.br`)"
       - "traefik.http.routers.wpconn-go.entrypoints=websecure"
       - "traefik.http.routers.wpconn-go.tls.certresolver=letsencrypt"
       - "traefik.http.services.wpconn-go.loadbalancer.server.port=3000"
@@ -45,7 +45,7 @@ services:
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.temporal-ui.rule=Host(`temporal.talkingcar.com.br`)"
+      - "traefik.http.routers.temporal-ui.rule=Host(`temporal.uaaldrive.com.br`)"
       - "traefik.http.services.temporal-ui.loadbalancer.server.port=8080"
 
   # Postgres Database
@@ -82,7 +82,7 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NEXT_PUBLIC_API_KEY=${APP_SECRET}
-      - NEXTAUTH_URL=https://app.talkingcar.com.br
+      - NEXTAUTH_URL=https://app.uaaldrive.com.br
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     ports:
       - "3001:3000"
@@ -92,7 +92,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
-      - "traefik.http.routers.wpconn-dashboard.rule=Host(`app.talkingcar.com.br`)"
+      - "traefik.http.routers.wpconn-dashboard.rule=Host(`app.uaaldrive.com.br`)"
       - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
       - "traefik.http.routers.wpconn-dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.services.wpconn-dashboard.loadbalancer.server.port=3000"

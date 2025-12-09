@@ -48,9 +48,9 @@ docker-compose up -d --build
 
 ## 🔍 Monitoramento & Acesso
 
--   **Dashboard** (Admin e Cadastro): `https://app.talkingcar.com.br` (ou `http://localhost:3001`)
--   **API** (Webhook Incoming): `https://webhook.talkingcar.com.br`
--   **Health Check**: `https://webhook.talkingcar.com.br/health` (Retorna `{"status": "ok"}`)
+-   **Dashboard** (Admin e Cadastro): `https://app.uaaldrive.com.br` (ou `http://localhost:3001`)
+-   **API** (Webhook Incoming): `https://webhook.uaaldrive.com.br`
+-   **Health Check**: `https://webhook.uaaldrive.com.br/health` (Retorna `{"status": "ok"}`)
 
 ---
 
@@ -69,7 +69,7 @@ Acesse o menu **Conexões** e clique em **Nova Conexão**. Preencha com os dados
 ### 2. Na Meta (Webhook Config)
 No Developers Portal > WhatsApp > Configuration:
 
--   **Callback URL**: `https://webhook.talkingcar.com.br/api/v1/webhooks`
+-   **Callback URL**: `https://webhook.uaaldrive.com.br/api/v1/webhooks`
 -   **Verify Token**: Deve ser idêntico ao valor de `WEBHOOK_VERIFY_TOKEN` configurado no seu `.env` raiz.
 
 ⚠️ **Atenção**: O `.env` valida o "aperto de mão". O Dashboard valida quem é o dono do número.
