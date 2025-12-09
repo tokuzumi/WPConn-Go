@@ -227,7 +227,7 @@ export const api = {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-API-Key": apiKey,
+                "x-api-key": apiKey,
             },
             body: JSON.stringify(user),
         });
@@ -239,7 +239,7 @@ export const api = {
         const response = await fetch(`${API_URL}/users/${id}`, {
             method: "DELETE",
             headers: {
-                "X-API-Key": apiKey,
+                "x-api-key": apiKey,
             },
         });
         if (!response.ok) throw new Error("Failed to delete user");
