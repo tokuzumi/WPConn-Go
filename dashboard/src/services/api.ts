@@ -29,7 +29,7 @@ export interface CreateTenantData {
 
 export interface Message {
     id: string;
-    tenant_phone_id?: string;
+    tenant_waba_id?: string;
     tenant_alias?: string;
     wamid: string;
     phone: string;

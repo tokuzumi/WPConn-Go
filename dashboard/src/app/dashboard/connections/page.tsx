@@ -156,7 +156,7 @@ export default function ConnectionsPage() {
                                 <Input value={newTenantName} onChange={(e) => setNewTenantName(e.target.value)} placeholder="Ex: Vendas" />
                             </div>
                             <div className="space-y-2">
-                                <Label>Apelido (Alias)</Label>
+                                <Label>Cliente</Label>
                                 <Input value={newTenantAlias} onChange={(e) => setNewTenantAlias(e.target.value)} placeholder="Ex: Divisão Sul" />
                             </div>
                             <div className="space-y-2">
@@ -204,7 +204,7 @@ export default function ConnectionsPage() {
                             <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Ex: Vendas" />
                         </div>
                         <div className="space-y-2">
-                            <Label>Apelido (Alias)</Label>
+                            <Label>Cliente</Label>
                             <Input value={editAlias} onChange={(e) => setEditAlias(e.target.value)} placeholder="Ex: Divisão Sul" />
                         </div>
                         <div className="space-y-2">
@@ -237,7 +237,7 @@ export default function ConnectionsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nome</TableHead>
-                                <TableHead>Apelido</TableHead>
+                                <TableHead>Cliente</TableHead>
                                 <TableHead>API Key</TableHead>
                                 <TableHead>Webhook</TableHead>
                                 <TableHead>Status</TableHead>

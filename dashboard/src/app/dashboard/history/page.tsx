@@ -78,9 +78,9 @@ export default function HistoryPage() {
                                 </p>
                             </div>
                             <div>
-                                <h4 className="text-sm font-medium">Canal (Alias)</h4>
+                                <h4 className="text-sm font-medium">Cliente</h4>
                                 <p className="text-sm text-muted-foreground font-semibold">{selectedMessage.tenant_alias || "N/A"}</p>
-                                <p className="text-xs text-muted-foreground">{selectedMessage.tenant_phone_id}</p>
+                                <p className="text-xs text-muted-foreground">{selectedMessage.tenant_waba_id}</p>
                             </div>
                             <div>
                                 <h4 className="text-sm font-medium">{selectedMessage.direction === 'inbound' ? "De" : "Para"}</h4>
@@ -177,7 +177,7 @@ function MessagesTable({ messages, loading, onViewDetails }: { messages: Message
                     <TableHeader>
                         <TableRow>
                             <TableHead>Data</TableHead>
-                            <TableHead>Canal</TableHead>
+                            <TableHead>Cliente</TableHead>
                             <TableHead>Número</TableHead>
                             <TableHead>Direção</TableHead>
                             <TableHead>Tipo</TableHead>
@@ -194,7 +194,7 @@ function MessagesTable({ messages, loading, onViewDetails }: { messages: Message
                                 </TableCell>
                                 <TableCell className="font-medium text-blue-600">
                                     {msg.tenant_alias || "N/A"}
-                                    {msg.tenant_phone_id && <span className="block text-xs text-muted-foreground">{msg.tenant_phone_id}</span>}
+                                    {msg.tenant_waba_id && <span className="block text-xs text-muted-foreground">{msg.tenant_waba_id}</span>}
                                 </TableCell>
                                 <TableCell>{msg.phone}</TableCell>
                                 <TableCell>

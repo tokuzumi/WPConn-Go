@@ -39,7 +39,7 @@ func (h *WebhookHandler) VerifyWebhook(c fiber.Ctx) error {
 		go func() {
 			ctx := context.Background()
 			query := `
-				INSERT INTO messages (wamid, type, direction, status, content, created_at, tenant_phone_id)
+				INSERT INTO messages (wamid, type, direction, status, content, created_at, waba_id)
 				VALUES ($1, $2, $3, $4, $5, $6, $7)
 			`
 			// We don't have phone_id in handshake, so we leave it empty (Global/System)
@@ -92,6 +92,8 @@ func (h *WebhookHandler) HandleWebhook(c fiber.Ctx) error {
 	// 3. Process Entries
 	go func() {
 		for _, entry := range event.Entry {
+			tenantWabaID := entry.ID // Extracted WABA ID
+
 			for _, change := range entry.Changes {
 				value := change.Value
 				if value.Messages == nil {
@@ -110,10 +112,9 @@ func (h *WebhookHandler) HandleWebhook(c fiber.Ctx) error {
 						Content:     extractContent(msg),
 						MetaMediaID: extractMediaID(msg),
 						BusinessPhoneID: phoneNumberID,
+						TenantWabaID: tenantWabaID, // Set WABA ID
 						SenderPhone: msg.From,
-						CreatedAt:   time.Now(), // Or use msg.Timestamp if available
-						// TenantID: We need to resolve this from PhoneNumberID usually.
-						// For now, we leave it empty or pass PhoneNumberID to workflow to resolve.
+						CreatedAt:   time.Now(), 
 					}
 
 					// SignalWithStart
@@ -189,6 +190,7 @@ func extractMediaID(msg MessageData) string {
 // Structs for parsing
 type WebhookEvent struct {
 	Entry []struct {
+		ID string `json:"id"` 
 		Changes []struct {
 			Value ValueData `json:"value"`
 		} `json:"changes"`

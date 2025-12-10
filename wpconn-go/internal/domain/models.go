@@ -23,7 +23,7 @@ type Tenant struct {
 type Message struct {
 	ID           string    `json:"id" db:"id"`
 	TenantID     string    `json:"tenant_id" db:"tenant_id"`        // Deprecated
-	TenantPhoneID string   `json:"tenant_phone_id" db:"tenant_phone_id"` // New WABA/Phone linkage
+	TenantWabaID string    `json:"waba_id" db:"waba_id"`            // New WABA Linkage
 	TenantAlias  string    `json:"tenant_alias" db:"-"`             // Joined field for display
 	Wamid        string    `json:"wamid" db:"wamid"`
 	Type         string    `json:"type" db:"type"`         // text, image, video, etc.
@@ -34,7 +34,7 @@ type Message struct {
 	MetaMediaID  string    `json:"meta_media_id" db:"meta_media_id"`
 	ReplyToWamid string    `json:"reply_to_wamid" db:"reply_to_wamid"`
 	SenderPhone  string    `json:"sender_phone" db:"sender_phone"`
-	BusinessPhoneID string `json:"business_phone_id" db:"-"` // Context only, not persisted
+	BusinessPhoneID string `json:"business_phone_id" db:"-"` // Still needed for Signal (if multiple phones per WABA)
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 }
 

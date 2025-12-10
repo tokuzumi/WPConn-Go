@@ -52,12 +52,16 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 		// If we wanted to resolve it, we could query tenants table, but we want to avoid lookups.
 		// Let's assume frontend uses TenantPhoneID primarily.
 
+	if msg.ID == "" {
+		// Legacy TenantID Resolution (Optional or Deprecated)
+		// ...
+
 		// We need a UUID generator. For simplicity in this migration, let's rely on DB default
 		// by modifying the query to exclude ID if we can, or just passing nil/default?
 		// Postgres driver might not like empty string for UUID.
 		// Let's use a raw query without ID and let DB generate it.
 		query = `
-			INSERT INTO messages (tenant_phone_id, wamid, type, direction, status, content, media_url, meta_media_id, sender_phone, reply_to_wamid, created_at)
+			INSERT INTO messages (waba_id, wamid, type, direction, status, content, media_url, meta_media_id, sender_phone, reply_to_wamid, created_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			ON CONFLICT (wamid) DO UPDATE SET status = EXCLUDED.status
 			RETURNING id
@@ -65,7 +69,7 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 		var newID string
 		
 		err := database.Pool.QueryRow(ctx, query, 
-			msg.TenantPhoneID,
+			msg.TenantWabaID,
 			msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.SenderPhone, msg.ReplyToWamid, time.Now(),
 		).Scan(&newID)
 		if err != nil {
