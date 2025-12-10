@@ -19,7 +19,6 @@ export default function ConnectionsPage() {
     const limit = 50;
 
     // Create State
-    const [newTenantName, setNewTenantName] = useState("");
     const [newTenantAlias, setNewTenantAlias] = useState("");
     const [newTenantWabaId, setNewTenantWabaId] = useState("");
     const [newTenantPhoneId, setNewTenantPhoneId] = useState("");
@@ -30,7 +29,6 @@ export default function ConnectionsPage() {
     // Edit State
     const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [editName, setEditName] = useState("");
     const [editAlias, setEditAlias] = useState("");
     const [editWabaId, setEditWabaId] = useState("");
     const [editPhoneId, setEditPhoneId] = useState("");
@@ -60,7 +58,6 @@ export default function ConnectionsPage() {
     const handleCreate = async () => {
         try {
             await api.createTenant({
-                name: newTenantName,
                 alias: newTenantAlias,
                 waba_id: newTenantWabaId,
                 phone_number_id: newTenantPhoneId,
@@ -73,7 +70,6 @@ export default function ConnectionsPage() {
             loadTenants();
 
             // Reset form
-            setNewTenantName("");
             setNewTenantAlias("");
             setNewTenantWabaId("");
             setNewTenantPhoneId("");
@@ -87,7 +83,6 @@ export default function ConnectionsPage() {
 
     const handleEdit = (tenant: Tenant) => {
         setSelectedTenant(tenant);
-        setEditName(tenant.name);
         setEditAlias(tenant.alias || "");
         setEditWabaId(tenant.waba_id);
         setEditPhoneId(tenant.phone_number_id);
@@ -101,7 +96,6 @@ export default function ConnectionsPage() {
         if (!selectedTenant) return;
         try {
             await api.updateTenant(selectedTenant.id, {
-                name: editName,
                 alias: editAlias,
                 waba_id: editWabaId,
                 phone_number_id: editPhoneId,
@@ -140,7 +134,7 @@ export default function ConnectionsPage() {
                 <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <SheetTrigger asChild>
                         <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Nova Conexão
+                            <Plus className="mr-2 h-4 w-4" /> Novo Telefone
                         </Button>
                     </SheetTrigger>
                     <SheetContent>
@@ -152,11 +146,7 @@ export default function ConnectionsPage() {
                         </SheetHeader>
                         <div className="space-y-4 py-4 mt-4">
                             <div className="space-y-2">
-                                <Label>Nome</Label>
-                                <Input value={newTenantName} onChange={(e) => setNewTenantName(e.target.value)} placeholder="Ex: Vendas" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Cliente</Label>
+                                <Label>Cliente (Alias)</Label>
                                 <Input value={newTenantAlias} onChange={(e) => setNewTenantAlias(e.target.value)} placeholder="Ex: Divisão Sul" />
                             </div>
                             <div className="space-y-2">
@@ -200,11 +190,7 @@ export default function ConnectionsPage() {
                             <Switch checked={editIsActive} onCheckedChange={setEditIsActive} />
                         </div>
                         <div className="space-y-2">
-                            <Label>Nome</Label>
-                            <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Ex: Vendas" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Cliente</Label>
+                            <Label>Cliente (Alias)</Label>
                             <Input value={editAlias} onChange={(e) => setEditAlias(e.target.value)} placeholder="Ex: Divisão Sul" />
                         </div>
                         <div className="space-y-2">
@@ -236,7 +222,6 @@ export default function ConnectionsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Nome</TableHead>
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>API Key</TableHead>
                                 <TableHead>Webhook</TableHead>
@@ -248,8 +233,7 @@ export default function ConnectionsPage() {
                         <TableBody>
                             {tenants.map((tenant) => (
                                 <TableRow key={tenant.id}>
-                                    <TableCell>{tenant.name}</TableCell>
-                                    <TableCell className="text-muted-foreground">{tenant.alias || "-"}</TableCell>
+                                    <TableCell className="font-medium text-blue-600">{tenant.alias || "Sem Nome"}</TableCell>
                                     <TableCell className="font-mono text-xs">{tenant.api_key}</TableCell>
                                     <TableCell className="max-w-[200px] truncate" title={tenant.webhook_url}>{tenant.webhook_url || "-"}</TableCell>
                                     <TableCell>

@@ -7,7 +7,6 @@ import (
 // Tenant represents a client using the API.
 type Tenant struct {
 	ID            string    `json:"id" db:"id"`
-	Name          string    `json:"name" db:"name"`
 	Alias         string    `json:"alias" db:"alias"`
 	WabaID        string    `json:"waba_id" db:"waba_id"`
 	PhoneNumberID string    `json:"phone_number_id" db:"phone_number_id"`

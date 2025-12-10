@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && window.location.protocol === 'https:' && AP
 
 export interface Tenant {
     id: string;
-    name: string;
     alias?: string;
     waba_id: string;
     phone_number_id: string;
@@ -19,7 +18,6 @@ export interface Tenant {
 }
 
 export interface CreateTenantData {
-    name: string;
     alias?: string;
     waba_id: string;
     phone_number_id: string;
@@ -107,7 +105,6 @@ export interface DashboardStatsResponse {
 }
 
 export interface TenantUpdateData {
-    name?: string;
     alias?: string;
     waba_id?: string;
     phone_number_id?: string;
@@ -130,7 +127,8 @@ export const api = {
             },
         });
         if (!response.ok) throw new Error("Failed to fetch tenants");
-        return response.json();
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
     },
 
     updateTenant: async (id: string, data: TenantUpdateData, apiKey: string): Promise<Tenant> => {
@@ -183,7 +181,8 @@ export const api = {
             },
         });
         if (!response.ok) throw new Error("Failed to fetch messages");
-        return response.json();
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
     },
 
     getLogs: async (apiKey: string, params?: { event?: string; limit?: number; offset?: number }): Promise<Log[]> => {
@@ -199,7 +198,8 @@ export const api = {
             },
         });
         if (!response.ok) throw new Error("Failed to fetch logs");
-        return response.json();
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
     },
 
     retryWebhook: async (logId: number, apiKey: string): Promise<any> => {
@@ -224,7 +224,8 @@ export const api = {
             },
         });
         if (!response.ok) throw new Error("Failed to fetch users");
-        return response.json();
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
     },
 
     createUser: async (user: CreateUserData, apiKey: string): Promise<User> => {

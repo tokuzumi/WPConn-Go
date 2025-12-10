@@ -36,7 +36,7 @@ func GetMessages(c fiber.Ctx) error {
 		SELECT 
 			m.id, 
 			COALESCE(m.waba_id, ''), 
-			COALESCE(t.alias, t.name, 'Desconhecido'),
+			COALESCE(t.alias, 'Desconhecido'),
 			m.wamid, 
 			m.type, 
 			m.direction, 

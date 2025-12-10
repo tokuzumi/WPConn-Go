@@ -4,7 +4,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Tenants Table (Must be created first)
 CREATE TABLE IF NOT EXISTS tenants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
     waba_id VARCHAR(255) NOT NULL,
     phone_number_id VARCHAR(255) UNIQUE NOT NULL,
     token TEXT NOT NULL,
