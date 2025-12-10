@@ -68,19 +68,30 @@ func (h *WebhookHandler) RetryWebhook(c fiber.Ctx) error {
 }
 
 func (h *WebhookHandler) HandleWebhook(c fiber.Ctx) error {
+	// 0. Debug Logging
+	log.Println("--- DEBUG: Webhook POST Received ---")
+	
 	// 1. Validate Signature
 	signature := c.Get("X-Hub-Signature-256")
 	if signature == "" {
 		signature = c.Get("x-hub-signature-256")
 	}
-	
+	log.Printf("DEBUG: Signature Header: %s", signature)
+
 	body := c.Body()
+	log.Printf("DEBUG: Body Size: %d", len(body))
+
 	appSecret := os.Getenv("APP_SECRET")
+	// Warn if secret is suspicious
+	if len(appSecret) < 5 {
+		log.Println("CRITICAL: APP_SECRET in env is very short or empty!")
+	}
 
 	if !validateSignature(body, signature, appSecret) {
-		log.Println("Invalid signature")
+		log.Println("ERROR: Invalid signature! Check if APP_SECRET matches Meta App Secret.")
 		return c.Status(fiber.StatusForbidden).SendString("Invalid signature")
 	}
+	log.Println("DEBUG: Signature validated successfully.")
 
 	// 2. Parse Payload
 	var event WebhookEvent
