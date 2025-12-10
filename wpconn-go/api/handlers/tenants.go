@@ -41,7 +41,7 @@ func GetTenants(c fiber.Ctx) error {
 	}
 	defer rows.Close()
 
-	var tenants []domain.Tenant
+	tenants := []domain.Tenant{}
 	for rows.Next() {
 		var t domain.Tenant
 		// We only scan fields selected in query

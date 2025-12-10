@@ -45,7 +45,7 @@ func GetMessages(c fiber.Ctx) error {
 	}
 	defer rows.Close()
 
-	var messages []domain.Message
+	messages := []domain.Message{}
 	for rows.Next() {
 		var m domain.Message
 		if err := rows.Scan(&m.ID, &m.TenantID, &m.Wamid, &m.Type, &m.Direction, &m.Status, &m.Content, &m.MediaURL, &m.CreatedAt); err != nil {

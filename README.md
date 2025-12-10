@@ -36,13 +36,25 @@ cp wpconn-go/.env.example wpconn-go/.env
 -   `WEBHOOK_VERIFY_TOKEN`: Token global para o "aperto de mão" com a Meta (você define essa senha).
 -   `POSTGRES_...`: Credenciais do banco.
 
-### 3. Executando
+### 3. Executando (Ambientes)
 Na raiz do projeto (ou dentro de `wpconn-go/`):
 
+**Opção A: Produção (VPS c/ Domínios)**
+Usa os domínios configurados (`wpconn.uaaldrive.com.br`, etc) e a rede `web`.
 ```bash
 cd wpconn-go
 docker-compose up -d --build
 ```
+
+**Opção B: Desenvolvimento Local (Localhost)**
+Usa portas locais: **Dashboard (:3091)** e **API (:3090)**.
+Este comando mescla o arquivo de produção com o arquivo de dev, sobrescrevendo as configurações.
+```bash
+cd wpconn-go
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+```
+- Dashboard: `http://localhost:3091`
+- Backend: `http://localhost:3090`
 
 ---
 

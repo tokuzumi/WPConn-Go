@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"wpconn-go/internal/database"
 	"wpconn-go/internal/domain"
 
@@ -11,8 +12,18 @@ import (
 
 // GetLogs retrieves audit logs with filters
 func GetLogs(c fiber.Ctx) error {
-	limit := c.QueryInt("limit", 50)
-	offset := c.QueryInt("offset", 0)
+	limit := 50
+	if l := c.Query("limit"); l != "" {
+		if val, err := strconv.Atoi(l); err == nil {
+			limit = val
+		}
+	}
+	offset := 0
+	if o := c.Query("offset"); o != "" {
+		if val, err := strconv.Atoi(o); err == nil {
+			offset = val
+		}
+	}
 	event := c.Query("event")
 
 	ctx := context.Background()

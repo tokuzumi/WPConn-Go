@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
@@ -132,20 +131,20 @@ export default function ConnectionsPage() {
     return (
         <div className="p-4 pt-1 space-y-4">
             <div className="flex items-center justify-end">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
+                <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <SheetTrigger asChild>
                         <Button>
                             <Plus className="mr-2 h-4 w-4" /> Nova Conexão
                         </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Nova Conexão WhatsApp</DialogTitle>
-                            <DialogDescription>
+                    </SheetTrigger>
+                    <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle>Nova Conexão WhatsApp</SheetTitle>
+                            <SheetDescription>
                                 Preencha os dados abaixo para conectar um novo número.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className="space-y-4 py-4 mt-4">
                             <div className="space-y-2">
                                 <Label>Nome</Label>
                                 <Input value={newTenantName} onChange={(e) => setNewTenantName(e.target.value)} placeholder="Ex: Vendas" />
@@ -168,8 +167,8 @@ export default function ConnectionsPage() {
                             </div>
                             <Button onClick={handleCreate} className="w-full">Salvar</Button>
                         </div>
-                    </DialogContent>
-                </Dialog>
+                    </SheetContent>
+                </Sheet>
             </div>
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
