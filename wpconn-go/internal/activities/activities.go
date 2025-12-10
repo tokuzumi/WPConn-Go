@@ -40,26 +40,12 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 	// But standard SQL doesn't support "value or default" easily in VALUES.
 	// Let's just generate a random UUID here if needed.
 	
+	// Logic to Insert Message
+	// We use WABA ID now. Logic simplificated.
+
+	var err error
 	if msg.ID == "" {
-		// Populate TenantPhoneID from Context/Webhook
-		if msg.TenantPhoneID == "" && msg.BusinessPhoneID != "" {
-			msg.TenantPhoneID = msg.BusinessPhoneID
-		}
-
-		// Legacy TenantID Resolution (Optional or Deprecated)
-		// We can still try to link it for backward compat if tenant_id column exists
-		var tenantIDArg interface{} = nil
-		// If we wanted to resolve it, we could query tenants table, but we want to avoid lookups.
-		// Let's assume frontend uses TenantPhoneID primarily.
-
-	if msg.ID == "" {
-		// Legacy TenantID Resolution (Optional or Deprecated)
-		// ...
-
-		// We need a UUID generator. For simplicity in this migration, let's rely on DB default
-		// by modifying the query to exclude ID if we can, or just passing nil/default?
-		// Postgres driver might not like empty string for UUID.
-		// Let's use a raw query without ID and let DB generate it.
+		// New Message (from Webhook) -> Insert with WABA ID
 		query = `
 			INSERT INTO messages (waba_id, wamid, type, direction, status, content, media_url, meta_media_id, sender_phone, reply_to_wamid, created_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -67,21 +53,25 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 			RETURNING id
 		`
 		var newID string
-		
-		err := database.Pool.QueryRow(ctx, query, 
+		err = database.Pool.QueryRow(ctx, query, 
 			msg.TenantWabaID,
 			msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.SenderPhone, msg.ReplyToWamid, time.Now(),
 		).Scan(&newID)
-		if err != nil {
-			return fmt.Errorf("failed to insert message: %w", err)
-		}
-		// We might want to return the ID?
 	} else {
-		// If ID is provided
-		_, err := database.Pool.Exec(ctx, query, msg.ID, msg.TenantID, msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.ReplyToWamid, msg.CreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to save message: %w", err)
-		}
+		// Existing Message (e.g. from Dashboard or retry with ID)
+		// We fallback to old query style or use update? 
+		// Actually, if ID is present, we shouldn't insert usually unless it's a migration script.
+		// For now, retaining the 'else' block but fixing the syntax.
+		query = `
+			INSERT INTO messages (id, waba_id, wamid, type, direction, status, content, media_url, meta_media_id, reply_to_wamid, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			ON CONFLICT (wamid) DO NOTHING
+		`
+		_, err = database.Pool.Exec(ctx, query, msg.ID, msg.TenantWabaID, msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.ReplyToWamid, msg.CreatedAt)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to save message: %w", err)
 	}
 
 	return nil
