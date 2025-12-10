@@ -92,7 +92,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
-      - "traefik.http.routers.wpconn-dashboard.rule=Host(`app.uaaldrive.com.br`)"
+      - "traefik.http.routers.wpconn-dashboard.rule=Host(`wpconn.uaaldrive.com.br`)"
       - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
       - "traefik.http.routers.wpconn-dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.services.wpconn-dashboard.loadbalancer.server.port=3000"
