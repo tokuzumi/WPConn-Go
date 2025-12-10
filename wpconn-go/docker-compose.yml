@@ -23,7 +23,7 @@ services:
       - traefik_public
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-web}"
       - "traefik.http.routers.wpconn-go.rule=Host(`webhook.uaaldrive.com.br`)"
       - "traefik.http.routers.wpconn-go.entrypoints=websecure"
       - "traefik.http.routers.wpconn-go.tls.certresolver=letsencrypt"
@@ -91,7 +91,7 @@ services:
       - traefik_public
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-web}"
       - "traefik.http.routers.wpconn-dashboard.rule=Host(`wpconn.uaaldrive.com.br`)"
       - "traefik.http.routers.wpconn-dashboard.entrypoints=websecure"
       - "traefik.http.routers.wpconn-dashboard.tls.certresolver=letsencrypt"
@@ -102,7 +102,7 @@ networks:
     driver: bridge
   traefik_public:
     external: true
-    name: ${TRAEFIK_NETWORK:-proxy}
+    name: ${TRAEFIK_NETWORK:-web}
 
 volumes:
   postgres_data:
