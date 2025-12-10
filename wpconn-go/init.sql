@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS tenants (
     token TEXT NOT NULL,
     api_key VARCHAR(255) UNIQUE NOT NULL,
     webhook_url TEXT,
+    alias VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS tenants (
 -- Messages Table
 CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID REFERENCES tenants(id),
+    tenant_id UUID REFERENCES tenants(id), -- Deprecated
+    waba_id VARCHAR(255), -- Tenant WABA ID (Account ID)
     wamid VARCHAR(255) UNIQUE NOT NULL,
     type VARCHAR(50) NOT NULL,
     direction VARCHAR(20) NOT NULL, -- inbound, outbound
@@ -55,5 +57,6 @@ CREATE TABLE IF NOT EXISTS users (
 -- Indexes for Performance
 CREATE INDEX IF NOT EXISTS idx_messages_wamid ON messages(wamid);
 CREATE INDEX IF NOT EXISTS idx_messages_tenant_id ON messages(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_messages_waba_id ON messages(waba_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_phone_number_id ON tenants(phone_number_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_api_key ON tenants(api_key);
