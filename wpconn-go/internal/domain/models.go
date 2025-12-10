@@ -8,6 +8,7 @@ import (
 type Tenant struct {
 	ID            string    `json:"id" db:"id"`
 	Name          string    `json:"name" db:"name"`
+	Alias         string    `json:"alias" db:"alias"`
 	WabaID        string    `json:"waba_id" db:"waba_id"`
 	PhoneNumberID string    `json:"phone_number_id" db:"phone_number_id"`
 	Token         string    `json:"token" db:"token"`
@@ -21,7 +22,9 @@ type Tenant struct {
 // Message represents a WhatsApp message (inbound or outbound).
 type Message struct {
 	ID           string    `json:"id" db:"id"`
-	TenantID     string    `json:"tenant_id" db:"tenant_id"`
+	TenantID     string    `json:"tenant_id" db:"tenant_id"`        // Deprecated
+	TenantPhoneID string   `json:"tenant_phone_id" db:"tenant_phone_id"` // New WABA/Phone linkage
+	TenantAlias  string    `json:"tenant_alias" db:"-"`             // Joined field for display
 	Wamid        string    `json:"wamid" db:"wamid"`
 	Type         string    `json:"type" db:"type"`         // text, image, video, etc.
 	Direction    string    `json:"direction" db:"direction"` // inbound, outbound

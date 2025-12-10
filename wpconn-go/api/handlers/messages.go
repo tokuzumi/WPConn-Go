@@ -31,14 +31,27 @@ func GetMessages(c fiber.Ctx) error {
 	var rows pgx.Rows
 	var err error
 
-	if role == "admin" {
-		query := `SELECT id, COALESCE(tenant_id::text, ''), wamid, type, direction, status, COALESCE(content, ''), COALESCE(media_url, ''), COALESCE(sender_phone, ''), created_at FROM messages ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-		rows, err = database.Pool.Query(ctx, query, limit, offset)
-	} else {
-		tenantID := c.Locals("tenant_id").(string)
-		query := `SELECT id, COALESCE(tenant_id::text, ''), wamid, type, direction, status, COALESCE(content, ''), COALESCE(media_url, ''), COALESCE(sender_phone, ''), created_at FROM messages WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
-		rows, err = database.Pool.Query(ctx, query, tenantID, limit, offset)
-	}
+	// Assuming global view for now as requested (or admin view)
+	// We join with tenants to get the Alias based on tenant_phone_id matching tenants.phone_number_id
+	query := `
+		SELECT 
+			m.id, 
+			COALESCE(m.tenant_phone_id, ''), 
+			COALESCE(t.alias, t.name, 'Desconhecido'),
+			m.wamid, 
+			m.type, 
+			m.direction, 
+			m.status, 
+			COALESCE(m.content, ''), 
+			COALESCE(m.media_url, ''), 
+			COALESCE(m.sender_phone, ''), 
+			m.created_at 
+		FROM messages m
+		LEFT JOIN tenants t ON m.tenant_phone_id = t.phone_number_id
+		ORDER BY m.created_at DESC 
+		LIMIT $1 OFFSET $2
+	`
+	rows, err = database.Pool.Query(ctx, query, limit, offset)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch messages"})
@@ -48,7 +61,8 @@ func GetMessages(c fiber.Ctx) error {
 	messages := []domain.Message{}
 	for rows.Next() {
 		var m domain.Message
-		if err := rows.Scan(&m.ID, &m.TenantID, &m.Wamid, &m.Type, &m.Direction, &m.Status, &m.Content, &m.MediaURL, &m.SenderPhone, &m.CreatedAt); err != nil {
+		// We map tenant_phone_id to TenantPhoneID and alias to TenantAlias
+		if err := rows.Scan(&m.ID, &m.TenantPhoneID, &m.TenantAlias, &m.Wamid, &m.Type, &m.Direction, &m.Status, &m.Content, &m.MediaURL, &m.SenderPhone, &m.CreatedAt); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan message"})
 		}
 		messages = append(messages, m)

@@ -41,39 +41,31 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 	// Let's just generate a random UUID here if needed.
 	
 	if msg.ID == "" {
-		// Resolve TenantID if missing
-		if msg.TenantID == "" && msg.BusinessPhoneID != "" {
-			var resolvedTenantID string
-			err := database.Pool.QueryRow(ctx, "SELECT id FROM tenants WHERE phone_number_id = $1 LIMIT 1", msg.BusinessPhoneID).Scan(&resolvedTenantID)
-			if err == nil {
-				msg.TenantID = resolvedTenantID
-			} else {
-				log.Printf("Warning: Could not resolve tenant_id for phone %s: %v", msg.BusinessPhoneID, err)
-			}
+		// Populate TenantPhoneID from Context/Webhook
+		if msg.TenantPhoneID == "" && msg.BusinessPhoneID != "" {
+			msg.TenantPhoneID = msg.BusinessPhoneID
 		}
+
+		// Legacy TenantID Resolution (Optional or Deprecated)
+		// We can still try to link it for backward compat if tenant_id column exists
+		var tenantIDArg interface{} = nil
+		// If we wanted to resolve it, we could query tenants table, but we want to avoid lookups.
+		// Let's assume frontend uses TenantPhoneID primarily.
 
 		// We need a UUID generator. For simplicity in this migration, let's rely on DB default
 		// by modifying the query to exclude ID if we can, or just passing nil/default?
 		// Postgres driver might not like empty string for UUID.
 		// Let's use a raw query without ID and let DB generate it.
 		query = `
-			INSERT INTO messages (tenant_id, wamid, type, direction, status, content, media_url, meta_media_id, sender_phone, reply_to_wamid, created_at)
+			INSERT INTO messages (tenant_phone_id, wamid, type, direction, status, content, media_url, meta_media_id, sender_phone, reply_to_wamid, created_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			ON CONFLICT (wamid) DO UPDATE SET status = EXCLUDED.status
 			RETURNING id
 		`
 		var newID string
-		// Use sql.NullString or similar if TenantID is empty?
-		// If msg.TenantID is empty string, we should probably pass nil to DB so it stores NULL?
-		// But our schema defines tenant_id as UUID REFERENCES tenants.
-		// If we pass empty string to UUID column it will fail.
-		var tenantIDArg interface{} = nil
-		if msg.TenantID != "" {
-			tenantIDArg = msg.TenantID
-		}
-
+		
 		err := database.Pool.QueryRow(ctx, query, 
-			tenantIDArg,
+			msg.TenantPhoneID,
 			msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.SenderPhone, msg.ReplyToWamid, time.Now(),
 		).Scan(&newID)
 		if err != nil {

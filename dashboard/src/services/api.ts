@@ -9,6 +9,7 @@ if (typeof window !== 'undefined' && window.location.protocol === 'https:' && AP
 export interface Tenant {
     id: string;
     name: string;
+    alias?: string;
     waba_id: string;
     phone_number_id: string;
     webhook_url?: string;
@@ -19,6 +20,7 @@ export interface Tenant {
 
 export interface CreateTenantData {
     name: string;
+    alias?: string;
     waba_id: string;
     phone_number_id: string;
     token: string;
@@ -27,6 +29,8 @@ export interface CreateTenantData {
 
 export interface Message {
     id: string;
+    tenant_phone_id?: string;
+    tenant_alias?: string;
     wamid: string;
     phone: string;
     direction: "inbound" | "outbound";
@@ -104,6 +108,7 @@ export interface DashboardStatsResponse {
 
 export interface TenantUpdateData {
     name?: string;
+    alias?: string;
     waba_id?: string;
     phone_number_id?: string;
     token?: string;

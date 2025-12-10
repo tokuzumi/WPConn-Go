@@ -20,6 +20,7 @@ export default function ConnectionsPage() {
 
     // Create State
     const [newTenantName, setNewTenantName] = useState("");
+    const [newTenantAlias, setNewTenantAlias] = useState("");
     const [newTenantWabaId, setNewTenantWabaId] = useState("");
     const [newTenantPhoneId, setNewTenantPhoneId] = useState("");
     const [newTenantToken, setNewTenantToken] = useState("");
@@ -30,6 +31,7 @@ export default function ConnectionsPage() {
     const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editName, setEditName] = useState("");
+    const [editAlias, setEditAlias] = useState("");
     const [editWabaId, setEditWabaId] = useState("");
     const [editPhoneId, setEditPhoneId] = useState("");
     const [editToken, setEditToken] = useState("");
@@ -59,6 +61,7 @@ export default function ConnectionsPage() {
         try {
             await api.createTenant({
                 name: newTenantName,
+                alias: newTenantAlias,
                 waba_id: newTenantWabaId,
                 phone_number_id: newTenantPhoneId,
                 token: newTenantToken,
@@ -71,6 +74,7 @@ export default function ConnectionsPage() {
 
             // Reset form
             setNewTenantName("");
+            setNewTenantAlias("");
             setNewTenantWabaId("");
             setNewTenantPhoneId("");
             setNewTenantToken("");
@@ -84,6 +88,7 @@ export default function ConnectionsPage() {
     const handleEdit = (tenant: Tenant) => {
         setSelectedTenant(tenant);
         setEditName(tenant.name);
+        setEditAlias(tenant.alias || "");
         setEditWabaId(tenant.waba_id);
         setEditPhoneId(tenant.phone_number_id);
         setEditToken(""); // Don't show existing token for security, only allow overwrite
@@ -97,6 +102,7 @@ export default function ConnectionsPage() {
         try {
             await api.updateTenant(selectedTenant.id, {
                 name: editName,
+                alias: editAlias,
                 waba_id: editWabaId,
                 phone_number_id: editPhoneId,
                 token: editToken || undefined, // Only send if not empty
@@ -150,6 +156,10 @@ export default function ConnectionsPage() {
                                 <Input value={newTenantName} onChange={(e) => setNewTenantName(e.target.value)} placeholder="Ex: Vendas" />
                             </div>
                             <div className="space-y-2">
+                                <Label>Apelido (Alias)</Label>
+                                <Input value={newTenantAlias} onChange={(e) => setNewTenantAlias(e.target.value)} placeholder="Ex: Divisão Sul" />
+                            </div>
+                            <div className="space-y-2">
                                 <Label>WABA ID</Label>
                                 <Input value={newTenantWabaId} onChange={(e) => setNewTenantWabaId(e.target.value)} placeholder="WABA ID" />
                             </div>
@@ -194,6 +204,10 @@ export default function ConnectionsPage() {
                             <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Ex: Vendas" />
                         </div>
                         <div className="space-y-2">
+                            <Label>Apelido (Alias)</Label>
+                            <Input value={editAlias} onChange={(e) => setEditAlias(e.target.value)} placeholder="Ex: Divisão Sul" />
+                        </div>
+                        <div className="space-y-2">
                             <Label>WABA ID</Label>
                             <Input value={editWabaId} onChange={(e) => setEditWabaId(e.target.value)} placeholder="WABA ID" />
                         </div>
@@ -223,6 +237,7 @@ export default function ConnectionsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nome</TableHead>
+                                <TableHead>Apelido</TableHead>
                                 <TableHead>API Key</TableHead>
                                 <TableHead>Webhook</TableHead>
                                 <TableHead>Status</TableHead>
@@ -234,6 +249,7 @@ export default function ConnectionsPage() {
                             {tenants.map((tenant) => (
                                 <TableRow key={tenant.id}>
                                     <TableCell>{tenant.name}</TableCell>
+                                    <TableCell className="text-muted-foreground">{tenant.alias || "-"}</TableCell>
                                     <TableCell className="font-mono text-xs">{tenant.api_key}</TableCell>
                                     <TableCell className="max-w-[200px] truncate" title={tenant.webhook_url}>{tenant.webhook_url || "-"}</TableCell>
                                     <TableCell>

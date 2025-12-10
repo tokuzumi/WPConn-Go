@@ -30,10 +30,10 @@ func GetTenants(c fiber.Ctx) error {
 	var err error
 
 	if role == "admin" {
-		rows, err = database.Pool.Query(ctx, "SELECT id, name, phone_number_id, is_active, created_at, api_key FROM tenants")
+		rows, err = database.Pool.Query(ctx, "SELECT id, name, alias, phone_number_id, is_active, created_at, api_key FROM tenants")
 	} else {
 		tenantID := c.Locals("tenant_id").(string)
-		rows, err = database.Pool.Query(ctx, "SELECT id, name, phone_number_id, is_active, created_at, api_key FROM tenants WHERE id = $1", tenantID)
+		rows, err = database.Pool.Query(ctx, "SELECT id, name, alias, phone_number_id, is_active, created_at, api_key FROM tenants WHERE id = $1", tenantID)
 	}
 
 	if err != nil {
@@ -45,7 +45,7 @@ func GetTenants(c fiber.Ctx) error {
 	for rows.Next() {
 		var t domain.Tenant
 		// We only scan fields selected in query
-		if err := rows.Scan(&t.ID, &t.Name, &t.PhoneNumberID, &t.IsActive, &t.CreatedAt, &t.APIKey); err != nil {
+		if err := rows.Scan(&t.ID, &t.Name, &t.Alias, &t.PhoneNumberID, &t.IsActive, &t.CreatedAt, &t.APIKey); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan tenant"})
 		}
 		tenants = append(tenants, t)
@@ -65,11 +65,11 @@ func CreateTenant(c fiber.Ctx) error {
 	}
 
 	query := `
-		INSERT INTO tenants (name, waba_id, phone_number_id, token, api_key, is_active)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO tenants (name, alias, waba_id, phone_number_id, token, api_key, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at
 	`
-	err := database.Pool.QueryRow(context.Background(), query, req.Name, req.WabaID, req.PhoneNumberID, req.Token, req.APIKey, true).Scan(&req.ID, &req.CreatedAt)
+	err := database.Pool.QueryRow(context.Background(), query, req.Name, req.Alias, req.WabaID, req.PhoneNumberID, req.Token, req.APIKey, true).Scan(&req.ID, &req.CreatedAt)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create tenant: " + err.Error()})
 	}

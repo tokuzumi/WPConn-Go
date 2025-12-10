@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"wpconn-go/internal/domain"
+	"wpconn-go/internal/database"
 
 	"github.com/gofiber/fiber/v3"
 	"go.temporal.io/sdk/client"
@@ -33,6 +34,23 @@ func (h *WebhookHandler) VerifyWebhook(c fiber.Ctx) error {
 
 	if mode == "subscribe" && token == verifyToken {
 		log.Println("Webhook verified successfully!")
+		
+		// Persist Handshake to Messages for visibility
+		go func() {
+			ctx := context.Background()
+			query := `
+				INSERT INTO messages (wamid, type, direction, status, content, created_at, tenant_phone_id)
+				VALUES ($1, $2, $3, $4, $5, $6, $7)
+			`
+			// We don't have phone_id in handshake, so we leave it empty (Global/System)
+			wamid := fmt.Sprintf("handshake-%d", time.Now().Unix())
+			content := "Webhook Verificado com Sucesso (Handshake)"
+			_, err := database.Pool.Exec(ctx, query, wamid, "system", "inbound", "read", content, time.Now(), "system")
+			if err != nil {
+				log.Printf("Failed to log handshake: %v", err)
+			}
+		}()
+
 		return c.SendString(challenge)
 	}
 
