@@ -12,7 +12,6 @@ import (
 )
 
 func GetMessages(c fiber.Ctx) error {
-	role := c.Locals("role").(string)
 	ctx := context.Background()
 
 	limit := 50
