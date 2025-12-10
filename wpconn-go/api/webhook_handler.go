@@ -92,6 +92,7 @@ func (h *WebhookHandler) HandleWebhook(c fiber.Ctx) error {
 						Content:     extractContent(msg),
 						MetaMediaID: extractMediaID(msg),
 						BusinessPhoneID: phoneNumberID,
+						SenderPhone: msg.From,
 						CreatedAt:   time.Now(), // Or use msg.Timestamp if available
 						// TenantID: We need to resolve this from PhoneNumberID usually.
 						// For now, we leave it empty or pass PhoneNumberID to workflow to resolve.
@@ -185,6 +186,7 @@ type ValueData struct {
 
 type MessageData struct {
 	ID        string `json:"id"`
+	From      string `json:"from"` // Sender phone number
 	Type      string `json:"type"`
 	Timestamp string `json:"timestamp"` // Often unix timestamp string or int
 	Text      struct {

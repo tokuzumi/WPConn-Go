@@ -41,20 +41,40 @@ func (a *Activities) SaveMessage(ctx context.Context, msg domain.Message) error 
 	// Let's just generate a random UUID here if needed.
 	
 	if msg.ID == "" {
+		// Resolve TenantID if missing
+		if msg.TenantID == "" && msg.BusinessPhoneID != "" {
+			var resolvedTenantID string
+			err := database.Pool.QueryRow(ctx, "SELECT id FROM tenants WHERE phone_number_id = $1 LIMIT 1", msg.BusinessPhoneID).Scan(&resolvedTenantID)
+			if err == nil {
+				msg.TenantID = resolvedTenantID
+			} else {
+				log.Printf("Warning: Could not resolve tenant_id for phone %s: %v", msg.BusinessPhoneID, err)
+			}
+		}
+
 		// We need a UUID generator. For simplicity in this migration, let's rely on DB default
 		// by modifying the query to exclude ID if we can, or just passing nil/default?
 		// Postgres driver might not like empty string for UUID.
 		// Let's use a raw query without ID and let DB generate it.
 		query = `
-			INSERT INTO messages (tenant_id, wamid, type, direction, status, content, media_url, meta_media_id, reply_to_wamid, created_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			INSERT INTO messages (tenant_id, wamid, type, direction, status, content, media_url, meta_media_id, sender_phone, reply_to_wamid, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			ON CONFLICT (wamid) DO UPDATE SET status = EXCLUDED.status
 			RETURNING id
 		`
 		var newID string
+		// Use sql.NullString or similar if TenantID is empty?
+		// If msg.TenantID is empty string, we should probably pass nil to DB so it stores NULL?
+		// But our schema defines tenant_id as UUID REFERENCES tenants.
+		// If we pass empty string to UUID column it will fail.
+		var tenantIDArg interface{} = nil
+		if msg.TenantID != "" {
+			tenantIDArg = msg.TenantID
+		}
+
 		err := database.Pool.QueryRow(ctx, query, 
-			nil, // TenantID (nullable/placeholder for now if we don't have it yet)
-			msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.ReplyToWamid, time.Now(),
+			tenantIDArg,
+			msg.Wamid, msg.Type, msg.Direction, msg.Status, msg.Content, msg.MediaURL, msg.MetaMediaID, msg.SenderPhone, msg.ReplyToWamid, time.Now(),
 		).Scan(&newID)
 		if err != nil {
 			return fmt.Errorf("failed to insert message: %w", err)

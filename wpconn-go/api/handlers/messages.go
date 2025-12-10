@@ -32,11 +32,11 @@ func GetMessages(c fiber.Ctx) error {
 	var err error
 
 	if role == "admin" {
-		query := `SELECT id, COALESCE(tenant_id::text, ''), wamid, type, direction, status, COALESCE(content, ''), COALESCE(media_url, ''), created_at FROM messages ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+		query := `SELECT id, COALESCE(tenant_id::text, ''), wamid, type, direction, status, COALESCE(content, ''), COALESCE(media_url, ''), COALESCE(sender_phone, ''), created_at FROM messages ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 		rows, err = database.Pool.Query(ctx, query, limit, offset)
 	} else {
 		tenantID := c.Locals("tenant_id").(string)
-		query := `SELECT id, COALESCE(tenant_id::text, ''), wamid, type, direction, status, COALESCE(content, ''), COALESCE(media_url, ''), created_at FROM messages WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
+		query := `SELECT id, COALESCE(tenant_id::text, ''), wamid, type, direction, status, COALESCE(content, ''), COALESCE(media_url, ''), COALESCE(sender_phone, ''), created_at FROM messages WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
 		rows, err = database.Pool.Query(ctx, query, tenantID, limit, offset)
 	}
 
@@ -48,7 +48,7 @@ func GetMessages(c fiber.Ctx) error {
 	messages := []domain.Message{}
 	for rows.Next() {
 		var m domain.Message
-		if err := rows.Scan(&m.ID, &m.TenantID, &m.Wamid, &m.Type, &m.Direction, &m.Status, &m.Content, &m.MediaURL, &m.CreatedAt); err != nil {
+		if err := rows.Scan(&m.ID, &m.TenantID, &m.Wamid, &m.Type, &m.Direction, &m.Status, &m.Content, &m.MediaURL, &m.SenderPhone, &m.CreatedAt); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan message"})
 		}
 		messages = append(messages, m)

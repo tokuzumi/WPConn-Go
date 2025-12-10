@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS messages (
     content TEXT,
     media_url TEXT,
     meta_media_id VARCHAR(255),
+    sender_phone VARCHAR(50),
     reply_to_wamid VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
