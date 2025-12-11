@@ -35,6 +35,7 @@ func SetupRoutes(app *fiber.App, temporal client.Client) {
 	// Messages
 	// Messages
 	v1.Get("/messages", handlers.GetMessages)
+	v1.Post("/messages", handlers.SendMessage)
 
     // Users (Public Login)
     app.Post("/api/v1/users/login", handlers.Login)
